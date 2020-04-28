@@ -1,6 +1,6 @@
-#ifndef STUDENT_SUSI_HEADER
-#define STUDENT_SUSI_HEADER
-#include "Discipline.h"
+#ifndef STUDENT_SUSI_HPP
+#define STUDENT_SUSI_HPP
+#include "Discipline.hpp"
 #include <iostream>
 
 enum class Specialty { INFORMATICS, COMPUTER_SCIENCE, SOFTWARE_ENGINEERING, MATH_AND_INFORMATICS};
@@ -17,8 +17,8 @@ private:
     int average_grade;
     Discipline* disciplines;
 public:
-    Student(){
-    }
+    Student() = default;
+    //~Student();
 };  
  
 #endif

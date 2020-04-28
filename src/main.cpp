@@ -1,5 +1,9 @@
-#include "Student.h"
-#include "Discipline.h"
+#include <iostream>
+#include "Student.hpp"
+#include "Discipline.hpp"
+#include "Helpers/StringHelper.hpp"
+
+#define SH StringHelper
 
 void save(){}
 void open(){}
@@ -21,10 +25,6 @@ void protocol(){}
 void report(){} 
 
 int main () {
-    Student* students;
-    Discipline* disciplines;
 
-    delete[] students;
-    delete[] disciplines;
     return 0;
 }

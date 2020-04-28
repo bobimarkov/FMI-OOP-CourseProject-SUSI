@@ -1,5 +1,5 @@
-#ifndef DISCIPLINE_H
-#define DISCIPLINE_H
+#ifndef DISCIPLINE_HPP
+#define DISCIPLINE_HPP
 #include <iostream>
 
 class Discipline{
