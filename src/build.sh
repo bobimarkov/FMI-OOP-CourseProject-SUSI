@@ -1,0 +1,1 @@
+g++ main.cpp Helpers/StringHelper.cpp -std=c++11 -o main

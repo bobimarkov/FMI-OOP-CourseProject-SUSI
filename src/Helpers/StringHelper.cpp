@@ -130,6 +130,25 @@ std::string StringHelper::toUpperCase (std::string str) {
     return newString;
 }
 
+//Ако има множество от последователни интервали, то свежда интервалите до 1 ("Hello           World!" ще стане "Hello World!")
+std::string StringHelper::clearConsecutiveSpaces (std::string str) {
+    std::string newString;
+    bool repeatingSpaces = false;
+    for(int i = 0; i < str.length(); i++) {
+        if (!repeatingSpaces) {
+            if (i > 0) {
+                if (str[i-1] == ' ' && str[i] == ' ') repeatingSpaces = true;
+            }
+            if(!repeatingSpaces) newString+= str[i];
+        }
+        else if (str[i] != ' ') {
+            repeatingSpaces = false;
+            newString += str[i];
+        }
+    }  
+    return newString;
+}
+
 //Проверява дали всичките символи в низа са букви
 bool StringHelper::isAllLetters (std::string str) {
     for(int i = 0; i < str.length(); i++) {

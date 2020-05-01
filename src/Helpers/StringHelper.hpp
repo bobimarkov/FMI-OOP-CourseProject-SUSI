@@ -14,6 +14,7 @@ namespace StringHelper {
     std::string reverse (std::string str);
     std::string toLowerCase (std::string str);
     std::string toUpperCase (std::string str);
+    std::string clearConsecutiveSpaces (std::string str); 
     bool isAllLetters (std::string str);
     bool isNumber(std::string str);
     bool isLowercase (std::string str);
