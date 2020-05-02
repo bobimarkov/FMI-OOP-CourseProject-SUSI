@@ -10,6 +10,19 @@ int StringHelper::count (std::string str, const char c) {
     return counter;
 }
 
+//Брои колко са срещанията на символа с в стринга, в част, в която не е заградена от кавички
+int StringHelper::countQ (std::string str, const char c) {
+    int counter = 0;
+    bool openQuotes = false;
+    for(int i = 0; i < str.length(); i++) {
+        if(str[i] == '"') openQuotes = !openQuotes;
+        if (str[i] == c && !openQuotes) {
+            counter++;
+        }
+    }
+    return counter;
+}
+
 //Брои броят срещания на даден низ в друг низ
 int StringHelper::count (std::string str, std::string c) {
     int counter = 0, it = 0;
@@ -64,9 +77,41 @@ std::string* StringHelper::split (std::string str) {
     return newString;
 }
 
+//Разделя даден низ на масив от поднизове спрямо даден символ като символите в кавички се игнорират (примерно <This is "Hello World!"> ще се раздели на {This,is,"Hello World!"})
+std::string* StringHelper::splitQ (std::string str, const char c) {
+    int arrSize = countQ(str,c) + 1;
+    std::string* array = new std::string[arrSize];
+    if(arrSize == 1) {
+        array[0] = str;
+        return array;    
+    };
+    std::string tempString;
+    bool openedQuotes = false;
+    int h = 0;
+    for (int i = 0; i < str.length(); i++) {
+        if (str[i] == '"') openedQuotes = !openedQuotes;
+        if(str[i] == c && !openedQuotes) {
+            array[h] = tempString;
+            tempString.erase();
+            h++;
+        }
+        else {
+            tempString += str[i];
+        }
+    }   
+    array[h] = tempString;
+    return array;
+}
+
+//Ако не е зададен символ по който да заделя, то заделя спрямо интервалите в низа
+std::string* StringHelper::splitQ (std::string str) {
+    std::string* newString = splitQ(str, ' ');
+    return newString;
+}
 
 //Премахва срещанията на символа c от най-вкрая на низа, ако има такива ("Dinosauroooooooooo" при указан символ 'o' ще стане "Dinosaur")
 std::string StringHelper::strip (std::string str, const char c) {
+    if(str.empty() || *(str.end()-1) != c) return str;
     int stopIndex = str.length()-1;
     for(int i = str.length()-2;i>=0;i--) { 
         if(str[i] == c) {
@@ -86,6 +131,7 @@ std::string StringHelper::strip (std::string str) {
 
 //Прави същото като strip, но само де премахването се извършва в началото на низа
 std::string StringHelper::stripBegin (std::string str, const char c) {
+    if(str.empty() || *str.begin() != c) return str;
     int beginIndex = 0;
     for(int i = 1; i < str.length(); i++) { 
         if(str[i] == c) {
@@ -131,7 +177,7 @@ std::string StringHelper::toUpperCase (std::string str) {
 }
 
 //Ако има множество от последователни интервали, то свежда интервалите до 1 ("Hello           World!" ще стане "Hello World!")
-std::string StringHelper::clearConsecutiveSpaces (std::string str) {
+std::string StringHelper::clearAllConsecutiveSpaces (std::string str) {
     std::string newString;
     bool repeatingSpaces = false;
     for(int i = 0; i < str.length(); i++) {
@@ -143,6 +189,32 @@ std::string StringHelper::clearConsecutiveSpaces (std::string str) {
         }
         else if (str[i] != ' ') {
             repeatingSpaces = false;
+            newString += str[i];
+        }
+    }  
+    return newString;
+}
+
+//Ако има множество от последователни интервали, то свежда интервалите до 1 като игнорира текст в кавички (<echo         "Hello     World!"> ще стане <echo "Hello     World!">)
+std::string StringHelper::clearAllConsecutiveSpacesQ (std::string str) {
+    std::string newString;
+    bool repeatingSpaces = false, openQuotes = false;
+    for(int i = 0; i < str.length(); i++) {
+        if(!openQuotes) {
+            if(str[i] == '"') openQuotes = true;
+            if (!repeatingSpaces) {
+                if (i > 0) {
+                    if (str[i-1] == ' ' && str[i] == ' ') repeatingSpaces = true;
+                }
+                if(!repeatingSpaces) newString+= str[i];
+            }
+            else if (str[i] != ' ') {
+                repeatingSpaces = false;
+                newString += str[i];
+            }
+        }
+        else {
+            if(str[i] == '"') openQuotes = false;
             newString += str[i];
         }
     }  

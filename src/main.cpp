@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+
 #include "Student.hpp"
 #include "Discipline.hpp"
 #include "Helpers/StringHelper.hpp"
@@ -13,22 +14,28 @@ std::string openedFilePath;
 void open(std::string filePath){
     std::ifstream in (filePath, std::ios::binary | std::ios::in);
 
-    openedFile = true;
-    openedFilePath = filePath;
-
     if(!in.is_open()) {
         //Ще създаде нов файл
         std::ofstream out (filePath, std::ios::binary | std::ios::out);
         out.close();
+        in.open(filePath, std::ios::binary | std::ios::in);
     }
 
-    std::cout << "Successfully opened the file!\n";
+    if(!in.is_open()) {
+        std::cout << "Error: Invalid file path!\n";
+        return;
+    }
 
+    openedFile = true;
+    openedFilePath = filePath;
+
+    std::cout << "Successfully opened the file!\n";
     in.close();
 }
 
 void close(){
     openedFile = false;
+    std::cout << "Successfully closed the file\n";
 }
 
 void saveas(){}
@@ -64,21 +71,23 @@ int main () {
         std::string command;
         std::cout << "\n> "; 
         getline(std::cin, command);
-        command = SH::stripBegin(SH::strip(command));  
-        std::string* separatedCommand = SH::split(command);
+        command = SH::clearAllConsecutiveSpacesQ(SH::stripBegin(SH::strip(command)));
+        std::string* separatedCommand = SH::splitQ(command);
 
         if (SH::toLowerCase(separatedCommand[0]) == "exit") {
             delete[] separatedCommand;
             exit();
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "open") {
-            if(!openedFile) open("D:/VS/FMI-OOP-CourseProject-SUSI/FMI-OOP-CourseProject-SUSI/src/test.bin/");
+            separatedCommand[1] = SH::strip(SH::stripBegin(separatedCommand[1],'"'),'"');
+            if(!openedFile) open(separatedCommand[1]);
             else std::cerr << "There is already an opened file! You can close the file with 'close'\n"; 
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "close") {
-            close();
+            if(openedFile) close();
+            else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
         }
-        else std::cerr << "Invalid command! Try again!\n";
+        else if(!command.empty()) std::cerr << "Invalid command! Try again!\n";
         
         delete[] separatedCommand;
     }
