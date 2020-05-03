@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
 
 #include "Student.hpp"
 #include "Discipline.hpp"
@@ -10,8 +11,24 @@
 
 bool openedFile = false;
 std::string openedFilePath;
+std::string fileName;
 
-void open(std::string filePath){
+void setFileName () {
+    int countSlash = SH::count(openedFilePath,'/');
+    int countBackslash = SH::count(openedFilePath, (char)92);
+
+    if(countSlash == 0 && countBackslash == 0) fileName = openedFilePath;
+    else if (countSlash > 0) {
+        std::string* sepPath = SH::split(openedFilePath,'/');
+        fileName = sepPath[countSlash];
+    }
+    else if (countBackslash > 0) {
+        std::string* sepPath = SH::split(openedFilePath,(char)92);
+        fileName = sepPath[countBackslash];
+    }
+}
+
+void open(std::string filePath) {
     std::ifstream in (filePath, std::ios::binary | std::ios::in);
 
     if(!in.is_open()) {
@@ -28,32 +45,54 @@ void open(std::string filePath){
 
     openedFile = true;
     openedFilePath = filePath;
+    setFileName();
 
-    std::cout << "Successfully opened the file!\n";
+    std::cout << "Successfully opened " << fileName << "!\n";
     in.close();
 }
 
-void close(){
+void close() {
     openedFile = false;
-    std::cout << "Successfully closed the file\n";
+    std::cout << "Successfully closed " << fileName << "!\n";
 }
 
-void saveas(){}
+void saveas(std::string filePath) {
+    std::ofstream out(filePath, std::ios::binary | std::ios::out);
 
-void save(){
+    if (!out.is_open()) {
+        std::cerr << "Error: Invalid file path!\n";
+        return;
+    }
 
+    openedFilePath = filePath;
+
+    std::cout << "Successfully saved " << fileName << "!\n"; 
+
+    out.close();
+}
+
+void save() {
+    saveas(openedFilePath);
 }
 
 void help(){
-
+    std::cout << "Available commands:\n"
+              << "help - shows all available commands\n"
+              << "open <file path> - opens <file path>\n"
+              << "close - closes the current opened file\n"
+              << "saveas <file path> - saves the current opened file in <file path>\n"
+              << "save - saves the current opened file\n"
+              << "exit - exits the program\n";
+    
 }
 
 void exit(){
+    std::cout << "Exiting the program...\n";
     std::exit(0);
 }
 
 void enroll(){}
-void advance(){}
+void advance(int fn){}
 void change(){}
 void graduate(){}
 void interrupt(){}
@@ -87,7 +126,8 @@ int main () {
             if(openedFile) close();
             else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
         }
-        else if(!command.empty()) std::cerr << "Invalid command! Try again!\n";
+        else if (SH::toLowerCase(separatedCommand[0]) == "help") help();
+        else if(!command.empty()) std::cerr << "Invalid command! Please type 'help' to see all available commands!\n";
         
         delete[] separatedCommand;
     }
