@@ -1,4 +1,10 @@
 #include "Discipline.hpp"
+#include "EnumerationClasses.hpp"
+#include "EnumConvertions.hpp"
+
+Discipline::Discipline(): name(""), type(Type::UNKNOWN), specialty(Specialty::UNKNOWN), availableForCourse(0), grade(0), credits(0) {
+
+}
 
 Discipline::Discipline(const Discipline& other) {
     this -> name = other.name;
@@ -6,9 +12,10 @@ Discipline::Discipline(const Discipline& other) {
     this -> specialty = other.specialty;
     this -> availableForCourse = other.availableForCourse;
     this -> grade = other.grade;
+    this -> credits = other.credits;
 }
 
-Discipline::Discipline(std::string name, Type type, std::string specialty, int availableForCourse, double grade): name(name), type(type), specialty(specialty), availableForCourse(availableForCourse), grade(grade) {
+Discipline::Discipline(std::string name, Type type, Specialty specialty, int availableForCourse, double grade, double credits): name(name), type(type), specialty(specialty), availableForCourse(availableForCourse), grade(grade), credits(credits) {
 
 }
 
@@ -19,14 +26,16 @@ Discipline& Discipline::operator = (const Discipline& other) {
     this -> specialty = other.specialty;
     this -> availableForCourse = other.availableForCourse;
     this -> grade = other.grade;
+    this -> credits = other.credits;
     return *this;
 }
 
 std::ostream& operator << (std::ostream& out, const Discipline& other) {
     out << other.name << std::endl
-        << static_cast<int>(other.type) << std::endl
-        << other.specialty << std::endl
+        << EnumConvertions::getType(other.type) << std::endl
+        << EnumConvertions::getSpecialty(other.specialty) << std::endl
         << other.availableForCourse << std::endl
-        << other.grade << std::endl;
+        << other.grade << std::endl
+        << other.credits << std::endl;
     return out;
 }

@@ -1,6 +1,14 @@
 #include "Student.hpp"
+#include "EnumerationClasses.hpp"
+#include "EnumConvertions.hpp"
+
 #include <iostream>
+#include <vector>
 #include <fstream>
+
+Student::Student(): name(""), faculty_number(0), course(0), specialty(Specialty::UNKNOWN), group(0), status(Student_Status::UNKNOWN), average_grade(0) {
+    disciplines.clear();
+}
 
 Student::Student(const Student& other) {
     this -> faculty_number = other.faculty_number;
@@ -13,8 +21,16 @@ Student::Student(const Student& other) {
     this -> disciplines = other.disciplines;
 }
 
-Student::Student(int faculty_number, Specialty specialty, int group, std::string name):faculty_number(faculty_number), specialty(specialty), group(group), name(name) {
+Student::Student(int faculty_number, Specialty specialty, int group, std::string name):faculty_number(faculty_number), specialty(specialty), group(group), name(name), course(1), status(Student_Status::SIGNED), average_grade(0) {
+    this -> disciplines.clear();
+}
 
+int Student::getFN () {
+    return this -> faculty_number;
+}
+
+Student_Status Student::getStatus() {
+    return this -> status;
 }
 
 Student& Student::operator = (const Student& other) {
@@ -39,7 +55,9 @@ void Student::changeStatus(Student_Status status) {
 }
 
 void Student::write(std::ofstream& out) {
-    out.write(reinterpret_cast<char*>(&name), sizeof(name));
+    int nameSize = name.length();
+    out.write(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
+    out.write(name.c_str(), sizeof(char)*nameSize);
     out.write(reinterpret_cast<char*>(&faculty_number), sizeof(faculty_number));
     out.write(reinterpret_cast<char*>(&course), sizeof(course));
     out.write(reinterpret_cast<char*>(&specialty), sizeof(specialty));
@@ -50,7 +68,12 @@ void Student::write(std::ofstream& out) {
 }
 
 void Student::read(std::ifstream& in) {
-    in.read(reinterpret_cast<char*>(&name), sizeof(name));
+    int nameSize;
+    in.read(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
+    char* nameStr = new char[nameSize];
+    nameStr[nameSize] = 0;
+    in.read(nameStr, sizeof(char)*nameSize);
+    this -> name = nameStr;
     in.read(reinterpret_cast<char*>(&faculty_number), sizeof(faculty_number));
     in.read(reinterpret_cast<char*>(&course), sizeof(course));
     in.read(reinterpret_cast<char*>(&specialty), sizeof(specialty));
@@ -61,13 +84,13 @@ void Student::read(std::ifstream& in) {
 }
 
 std::ostream& operator << (std::ostream& out, const Student& other) {
-    out << other.name << std::endl
-        << other.faculty_number << std::endl
-        << other.course << std::endl 
-        << static_cast<int>(other.specialty) << std::endl
-        << other.group << std::endl
-        << static_cast<int>(other.status) << std::endl
-        << other.average_grade << std::endl
+    out << "Name: " << other.name << std::endl
+        << "Faculty number: " << other.faculty_number << std::endl
+        << "Course: " << other.course << std::endl 
+        << "Specialty: " << EnumConvertions::getSpecialty(other.specialty) << std::endl
+        << "Group: " << other.group << std::endl
+        << "Status: " << EnumConvertions::getStudentStatus(other.status) << std::endl
+        << "Average grade: " << other.average_grade << std::endl
         << "Disciplines:\n";
     for (Discipline d : other.disciplines) {
         out << d << std::endl;

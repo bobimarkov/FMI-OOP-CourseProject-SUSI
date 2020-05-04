@@ -1,20 +1,20 @@
 #ifndef DISCIPLINE_HPP
 #define DISCIPLINE_HPP
 #include <iostream>
-
-enum class Type {OPTIONAL = 1, COMPULSORY = 2};
+#include "EnumerationClasses.hpp"
 
 class Discipline{
     private:
         std::string name;
         Type type; 
-        std::string specialty;
+        Specialty specialty;
         int availableForCourse;
         double grade;
+        double credits;
     public:
-        Discipline() = default;
+        Discipline();
         Discipline(const Discipline&);
-        Discipline(std::string, Type, std::string, int, double);
+        Discipline(std::string, Type, Specialty, int, double, double);
 
         Discipline& operator = (const Discipline&);
 
