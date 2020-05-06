@@ -2,38 +2,41 @@
 #define STUDENT_SUSI_HPP
 #include "Discipline.hpp"
 #include "EnumerationClasses.hpp"
+#include "Specialty.hpp"
 
 #include <iostream>
 #include <vector>
 
 class Student {
-private:
-    std::string name;
-    int faculty_number;
-    int course;
-    Specialty specialty;
-    int group;
-    Student_Status status;
-    int average_grade;
-    std::vector<Discipline> disciplines;
-public:
+    private:
+        std::string name;
+        int faculty_number;
+        int course;
+        Specialty specialty;
+        int group;
+        Student_Status status;
+        int average_grade;
+        std::vector<Discipline> disciplines;
+    public:
 
-    Student();
-    Student(int, Specialty, int, std::string);
-    Student(const Student&);
+        Student();
+        Student(int, Specialty, int, std::string);
+        Student(const Student&);
 
-    int getFN();
-    Student_Status getStatus();
+        int getFN();
+        Student_Status getStatus();
 
-    Student& operator = (const Student&);
+        Student& operator = (const Student&);
 
-    void advance ();
-    void changeStatus(Student_Status);
+        void addDiscipline (Discipline);
+        void advance ();
+        void changeStatus(Student_Status);
+        void calculateAvgGrade();
 
-    void write(std::ofstream&);
-    void read(std::ifstream&);
+        void write(std::ofstream&);
+        void read(std::ifstream&);
 
-    friend std::ostream& operator << (std::ostream&, const Student&);
+        friend std::ostream& operator << (std::ostream&, const Student&);
 };  
  
 #endif

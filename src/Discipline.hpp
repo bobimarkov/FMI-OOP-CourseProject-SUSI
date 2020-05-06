@@ -7,16 +7,26 @@ class Discipline{
     private:
         std::string name;
         Type type; 
-        Specialty specialty;
         int availableForCourse;
+        bool hadExam;
         double grade;
         double credits;
     public:
         Discipline();
         Discipline(const Discipline&);
-        Discipline(std::string, Type, Specialty, int, double, double);
+        Discipline(std::string, Type, int, double);
+
+        void setExam(bool);
+
+        double getGrade() const;
+        double getCredits() const;
+        bool getHadExam() const;
+        std::string getName() const;
 
         Discipline& operator = (const Discipline&);
+
+        void write(std::ofstream&);
+        void read(std::ifstream&);
 
         friend std::ostream& operator << (std::ostream&, const Discipline&);
 };

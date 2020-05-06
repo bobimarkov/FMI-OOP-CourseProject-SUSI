@@ -3,14 +3,13 @@
 #include "EnumerationClasses.hpp"
 #include <iostream>
 
-namespace EnumConvertions {
-    std::string getSpecialty (Specialty);
-    std::string getStudentStatus (Student_Status);
-    std::string getType (Type);
-    
-    Specialty stringToSpecialty (std::string);
-    Student_Status stringToStudentStatus (std::string);
-    Type stringToType (std::string);
+class EnumConvertions {
+    public:
+        static std::string getStudentStatus (Student_Status);
+        static std::string getType (Type);
+        
+        static Student_Status stringToStudentStatus (std::string);
+        static Type stringToType (std::string);
 };
 
 #endif

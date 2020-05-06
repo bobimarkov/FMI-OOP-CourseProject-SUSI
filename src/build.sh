@@ -1,1 +1,1 @@
-g++ main.cpp Helpers/StringHelper.cpp Discipline.cpp Student.cpp EnumConvertions.cpp -std=c++11 -o main
+g++ main.cpp Helpers/StringHelper.cpp Discipline.cpp Student.cpp EnumConvertions.cpp Specialty.cpp SpecialtyList.cpp -std=c++11 -o main

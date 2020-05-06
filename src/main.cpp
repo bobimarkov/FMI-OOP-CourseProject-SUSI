@@ -4,10 +4,18 @@
 #include <vector>
 
 #include "Student.hpp"
+#include "Specialty.hpp"
+#include "SpecialtyList.hpp"
 #include "Discipline.hpp"
 #include "Helpers/StringHelper.hpp"
 #include "EnumerationClasses.hpp"
 #include "EnumConvertions.hpp"
+
+//TODO:
+//1. FIX SpecialtyList methods (removing a discipline)
+//2. Add more messages in these methods
+//3. Fix file reading and writing for Specialty vector
+//4. Do the rest of the task
 
 #define SH StringHelper 
 
@@ -16,9 +24,16 @@ std::string openedFilePath;
 std::string fileName;
 
 std::vector<Student> students;
-std::vector<Discipline> disciplines;
 
-bool alreadyEnrolledFN(int fn) {
+int findSpecialty (std::string sp) {
+    if(SH::isNumber(sp)) return std::stoi(sp);
+    for (int i = 0; i < SpecialtyList::specialties.size(); i++) {
+        if (sp == SpecialtyList::specialties[i].getName()) return i;
+    }
+    return 0;
+}
+
+bool alreadyEnrolledFN(int fn) { 
     for(Student s : students) {
         if (fn == s.getFN()) return true;
     }
@@ -122,7 +137,16 @@ void help(){
               << "enroll <faculty number> <specialty> <group> <student name> - enrolls a student\n"
               << "advance <faculty number> - advance a student\n"
               << "interrupt <faculty number> - interrupts a student\n"
-              << "resume <faculty number> - resumes a student\n";
+              << "resume <faculty number> - resumes a student\n"
+              << "\nAdministrator commands:\n"
+              << "addspecialty - adds a specialty\n"
+              << "removespecialty - removes a specialty\n"
+              << "adddiscipline - adds a discipline to an existing specialty\n"
+              << "removediscipline - removes a discipline from an existing specialty\n" 
+              << "listspecialties - prints all available specialties\n"
+              << "listdisciplines - prints all available disciplines for a specific specialty\n"
+              << "savespecialties - save all registered specialties along with the disciplines for each specialty in one file\n";
+              
 }
 
 void exit(){
@@ -132,12 +156,13 @@ void exit(){
 
 void enroll(int fn, std::string specialty, int group, std::string name) {
     if(openedFile) {
-        Specialty sp = EnumConvertions::stringToSpecialty(specialty);
+        //Specialty sp = Specialty::stringToSpecialty(specialty);
+        Specialty sp = SpecialtyList::specialties[findSpecialty(specialty)];
         if (alreadyEnrolledFN(fn)) {
             std::cerr << "A student with this faculty number already exists!\n";
             return;
         }
-        if (sp == Specialty::UNKNOWN) std::cerr << "Invalid specialty\n";
+        if (sp.getName() == "UNKNOWN") std::cerr << "Invalid specialty\n";
         else {
             students.push_back(Student(fn, sp, group, name));
             std::cout << "The student is enrolled successfully!\n";
@@ -193,6 +218,7 @@ void protocol(){}
 void report(){} 
 
 int main () {
+    SpecialtyList::loadSpecialties();
     std::cout << "Welcome to SUSI!\n";
     while(true) {
         std::string command;
@@ -263,6 +289,27 @@ int main () {
                 if (SH::isNumber(separatedCommand[1])) resume(std::stoi(separatedCommand[1]));
                 else std::cerr << "Invalid arguments!\n"; 
             }
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "addspecialty") {
+            SpecialtyList::addSpecialty();
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "removespecialty") {
+            SpecialtyList::removeSpecialty();
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "adddiscipline") {
+            SpecialtyList::addDiscipline();
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "removediscipline") {
+            SpecialtyList::removeDiscipline();
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "listspecialties") {
+            SpecialtyList::listSpecialties();
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "listdisciplines") {
+            SpecialtyList::listDisciplines();
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "savespecialties") {
+            SpecialtyList::writeSpecialties();
         }
         else if(!command.empty()) std::cerr << "Invalid command! Please type 'help' to see all available commands!\n";
         

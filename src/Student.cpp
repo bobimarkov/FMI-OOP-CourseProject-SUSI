@@ -6,7 +6,7 @@
 #include <vector>
 #include <fstream>
 
-Student::Student(): name(""), faculty_number(0), course(0), specialty(Specialty::UNKNOWN), group(0), status(Student_Status::UNKNOWN), average_grade(0) {
+Student::Student(): name(""), faculty_number(0), course(0), group(0), status(Student_Status::UNKNOWN), average_grade(0) {
     disciplines.clear();
 }
 
@@ -46,6 +46,10 @@ Student& Student::operator = (const Student& other) {
     return *this;
 }
 
+void Student::addDiscipline (Discipline discipline) {
+    this -> disciplines.push_back(discipline);
+}
+
 void Student::advance () {
     this -> course++;
 }
@@ -54,13 +58,22 @@ void Student::changeStatus(Student_Status status) {
     this -> status = status;
 }
 
+void Student::calculateAvgGrade () {
+    int sumGrades = 0, countNotTaken = 0;
+    for (Discipline d : this -> disciplines) {
+        if(d.getHadExam()) sumGrades += d.getGrade();
+        else countNotTaken++;
+    }
+    this -> average_grade = sumGrades/(this -> disciplines.size() - countNotTaken);
+}
+
 void Student::write(std::ofstream& out) {
     int nameSize = name.length();
     out.write(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
     out.write(name.c_str(), sizeof(char)*nameSize);
     out.write(reinterpret_cast<char*>(&faculty_number), sizeof(faculty_number));
     out.write(reinterpret_cast<char*>(&course), sizeof(course));
-    out.write(reinterpret_cast<char*>(&specialty), sizeof(specialty));
+    specialty.write(out);
     out.write(reinterpret_cast<char*>(&group), sizeof(group));
     out.write(reinterpret_cast<char*>(&status), sizeof(status));
     out.write(reinterpret_cast<char*>(&average_grade), sizeof(average_grade));
@@ -74,9 +87,10 @@ void Student::read(std::ifstream& in) {
     nameStr[nameSize] = 0;
     in.read(nameStr, sizeof(char)*nameSize);
     this -> name = nameStr;
+    delete[] nameStr;
     in.read(reinterpret_cast<char*>(&faculty_number), sizeof(faculty_number));
     in.read(reinterpret_cast<char*>(&course), sizeof(course));
-    in.read(reinterpret_cast<char*>(&specialty), sizeof(specialty));
+    specialty.read(in);
     in.read(reinterpret_cast<char*>(&group), sizeof(group));
     in.read(reinterpret_cast<char*>(&status), sizeof(status));
     in.read(reinterpret_cast<char*>(&average_grade), sizeof(average_grade));
@@ -87,11 +101,11 @@ std::ostream& operator << (std::ostream& out, const Student& other) {
     out << "Name: " << other.name << std::endl
         << "Faculty number: " << other.faculty_number << std::endl
         << "Course: " << other.course << std::endl 
-        << "Specialty: " << EnumConvertions::getSpecialty(other.specialty) << std::endl
+        << "Specialty: " << other.specialty.getName() << std::endl
         << "Group: " << other.group << std::endl
         << "Status: " << EnumConvertions::getStudentStatus(other.status) << std::endl
         << "Average grade: " << other.average_grade << std::endl
-        << "Disciplines:\n";
+        << "\nDisciplines:\n";
     for (Discipline d : other.disciplines) {
         out << d << std::endl;
     }

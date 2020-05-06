@@ -8,14 +8,6 @@ enum class Student_Status {
     UNKNOWN
 };
 
-enum class Specialty { 
-    INFORMATICS = 1, 
-    COMPUTER_SCIENCE = 2, 
-    SOFTWARE_ENGINEERING = 3, 
-    MATH_AND_INFORMATICS = 4,
-    UNKNOWN
-};
-
 enum class Type {
     OPTIONAL = 1, 
     COMPULSORY = 2,
