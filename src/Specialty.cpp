@@ -60,7 +60,7 @@ std::vector<Discipline>& Specialty::getAvailableDisciplines() {
 }
 
 void Specialty::printAvailableDisciplines() const{
-    std::cout << "Disciplines for specialty " << this -> name << ":\n"; 
+    std::cout << "Disciplines for specialty \"" << this -> name << "\":\n"; 
     for(int i = 0; i < availableDisciplines.size(); i++) {
         std::cout << i+1 << ": " << availableDisciplines[i].getName() << std::endl;
     }
@@ -82,13 +82,14 @@ void Specialty::read(std::ifstream& in) {
     int nameSize;
     int disciplineSize;
     in.read(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
-    char* nameStr = new char[nameSize];
-    nameStr[nameSize] = 0;
+    char* nameStr = new char[nameSize + 1];
     in.read(nameStr, sizeof(char)*nameSize);
+    nameStr[nameSize] = 0;
     this -> name = nameStr;
     delete[] nameStr;
     in.read(reinterpret_cast<char*>(&minCredits), sizeof(minCredits));
     in.read(reinterpret_cast<char*>(&disciplineSize), sizeof(disciplineSize));
+
     for(int i = 0; i < disciplineSize; i++) {
         Discipline d;
         d.read(in);
@@ -97,7 +98,7 @@ void Specialty::read(std::ifstream& in) {
 }
 
 std::ostream& operator << (std::ostream& out, const Specialty& other) {
-    out << "Name: " << other.name
+    out << "Specialty name: " << other.name << std::endl
         << "Min Credits: " << other.minCredits;
 
     for(Discipline d: other.availableDisciplines) {

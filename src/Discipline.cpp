@@ -38,6 +38,10 @@ bool Discipline::getHadExam () const {
     return this -> hadExam;
 }
 
+int Discipline::getAvailableForCourse() const {
+    return this -> availableForCourse;
+}
+
 std::string Discipline::getName () const {
     return this -> name;
 }
@@ -67,9 +71,9 @@ void Discipline::write (std::ofstream& out) {
 void Discipline::read (std::ifstream& in) {
     int nameSize;
     in.read(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
-    char* nameStr = new char[nameSize];
-    nameStr[nameSize] = 0;
+    char* nameStr = new char[nameSize + 1];
     in.read(nameStr, sizeof(char)*nameSize);
+    nameStr[nameSize] = 0;
     this -> name = nameStr;
     delete[] nameStr;
     in.read(reinterpret_cast<char*>(&type), sizeof(type));
@@ -80,7 +84,7 @@ void Discipline::read (std::ifstream& in) {
 }
 
 std::ostream& operator << (std::ostream& out, const Discipline& other) {
-    out << "Name: " << other.name << std::endl
+    out << "\n\nDiscipline name: " << other.name << std::endl
         << "Type: " << EnumConvertions::getType(other.type) << std::endl
         << "Available for course: " << other.availableForCourse << std::endl
         << "Had exam: " << other.hadExam << std::endl

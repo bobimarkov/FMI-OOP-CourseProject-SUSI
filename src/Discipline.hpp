@@ -21,6 +21,7 @@ class Discipline{
         double getGrade() const;
         double getCredits() const;
         bool getHadExam() const;
+        int getAvailableForCourse() const;
         std::string getName() const;
 
         Discipline& operator = (const Discipline&);
