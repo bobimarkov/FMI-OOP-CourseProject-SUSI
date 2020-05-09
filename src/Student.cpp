@@ -41,7 +41,7 @@ Student_Status Student::getStatus() {
     return this -> status;
 }
 
-std::vector<Discipline> Student::getDisciplines () {
+std::vector<Discipline>& Student::getDisciplines () {
     return this -> disciplines;
 }
 
@@ -102,7 +102,12 @@ void Student::write(std::ofstream& out) {
     out.write(reinterpret_cast<char*>(&group), sizeof(group));
     out.write(reinterpret_cast<char*>(&status), sizeof(status));
     out.write(reinterpret_cast<char*>(&average_grade), sizeof(average_grade));
-    out.write(reinterpret_cast<char*>(&disciplines), sizeof(disciplines));
+
+    int disciplinesSize = this -> disciplines.size();
+    out.write(reinterpret_cast<char*>(&disciplinesSize), sizeof(disciplinesSize));
+    for(int i = 0; i < disciplinesSize; i++) {
+        this -> disciplines[i].write(out);
+    }
 }
 
 void Student::read(std::ifstream& in) {
@@ -128,7 +133,14 @@ void Student::read(std::ifstream& in) {
     in.read(reinterpret_cast<char*>(&group), sizeof(group));
     in.read(reinterpret_cast<char*>(&status), sizeof(status));
     in.read(reinterpret_cast<char*>(&average_grade), sizeof(average_grade));
-    in.read(reinterpret_cast<char*>(&disciplines), sizeof(disciplines));
+
+    int disciplinesSize;
+    in.read(reinterpret_cast<char*>(&disciplinesSize), sizeof(disciplinesSize));
+    for(int i = 0; i < disciplinesSize; i++) {
+        Discipline d;
+        d.read(in);
+        this -> disciplines.push_back(d);
+    }
 }
 
 std::ostream& operator << (std::ostream& out, const Student& other) {
@@ -140,8 +152,8 @@ std::ostream& operator << (std::ostream& out, const Student& other) {
         << "Status: " << EnumConvertions::getStudentStatus(other.status) << std::endl
         << "Average grade: " << other.average_grade << std::endl
         << "\nDisciplines:\n";
-    for (Discipline d : other.disciplines) {
-        out << d << std::endl;
+    for (int i = 0; i < other.disciplines.size(); i++) {
+        out << std::endl << i+1 << ":" << other.disciplines[i] << std::endl;
     }
     return out;
 }

@@ -26,6 +26,10 @@ void Discipline::setExam (bool flag) {
     this -> hadExam = flag;
 }
 
+void Discipline::setGrade (double grade) {
+    this -> grade = grade;
+}
+
 double Discipline::getGrade () const {
     return this -> grade;
 }
@@ -84,7 +88,7 @@ void Discipline::read (std::ifstream& in) {
 }
 
 std::ostream& operator << (std::ostream& out, const Discipline& other) {
-    out << "\n\nDiscipline name: " << other.name << std::endl
+    out << "\nDiscipline name: " << other.name << std::endl
         << "Type: " << EnumConvertions::getType(other.type) << std::endl
         << "Available for course: " << other.availableForCourse << std::endl
         << "Had exam: " << other.hadExam << std::endl

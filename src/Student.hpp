@@ -27,7 +27,7 @@ class Student {
         int getCourse();
         std::string getSpecialty();
         Student_Status getStatus();
-        std::vector<Discipline> getDisciplines ();
+        std::vector<Discipline>& getDisciplines ();
 
         Student& operator = (const Student&);
 

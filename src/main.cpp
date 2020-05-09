@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 #include "Student.hpp"
 #include "Specialty.hpp"
@@ -19,6 +20,22 @@ std::string fileName;
 
 std::vector<Student> students;
 
+/*
+TODO:
+1. Fix change()
+2. Make the rest of the functions
+3. Finish the credit system
+4. Make some disciplines with multiple courses for enrolling
+5. Complete specialties.dat 
+*/
+
+bool checkAlreadyEnrolledDiscipline(int studentIndex, int specialtyIndex, int disciplineIndex) {
+    for (Discipline d : students[studentIndex].getDisciplines()) {
+        if (SpecialtyList::specialties[specialtyIndex].getAvailableDisciplines()[disciplineIndex].getName() == d.getName()) return true;
+    }
+    return false;
+}
+
 bool alreadyEnrolledFN(int fn) { 
     for(Student s : students) {
         if (fn == s.getFN()) return true;
@@ -32,6 +49,14 @@ int findFN(int fn) {
     }
     return -1;
 } 
+
+int findStudentDisciplineIndex(int studentIndex, std::string discipline) {
+    if (SH::isNumber(discipline)) if(std::stoi(discipline) > 0 && std::stoi(discipline) <= students[studentIndex].getDisciplines().size()) return std::stoi(discipline)-1;
+    for (int i = 0; i < students[studentIndex].getDisciplines().size(); i++) {
+        if (SH::toLowerCase(students[studentIndex].getDisciplines()[i].getName()) == SH::toLowerCase(discipline)) return i;
+    }
+    return -1;
+}
 
 void setFileName () {
     int countSlash = SH::count(openedFilePath,'/');
@@ -128,6 +153,8 @@ void help(){
               << "resume <faculty number> - resumes a student\n"
               << "print <faculty number> - prints information about a student\n"
               << "printall <specialty name/id> <course> - prints information about all students in given specialty and course\n"
+              << "enrollin <faculty number> <discipline name/id> - enrolls a student in given discipline if he meets the requirements\n"
+              << "addgrade <faculty number> <discipline name/id> <grade> - adds a grade to given discipline\n"
               << "\nAdministrator commands:\n"
               << "add specialty - adds a specialty\n"
               << "remove specialty - removes a specialty\n"
@@ -288,21 +315,70 @@ void print(int fn) {
 }
 
 void printall(std::string specialty, int course) {
-    int specialtyIndex = SpecialtyList::findSpecialty(specialty);
-    if(specialtyIndex == 0) {
-        std::cerr << "Invalid specialty!\n";
-        return;
+    if(openedFile) {
+        int specialtyIndex = SpecialtyList::findSpecialty(specialty);
+        if(specialtyIndex == 0) {
+            std::cerr << "Invalid specialty!\n";
+            return;
+        }
+        if(course < 1) {
+            std::cerr << "Invalid course!\n";
+            return;
+        }
+        for (Student s : students) {
+            if(specialtyIndex == SpecialtyList::findSpecialty(s.getSpecialty()) && course == s.getCourse()) std::cout << s << std::endl;
+        }
     }
-    if(course < 1) {
-        std::cerr << "Invalid course!\n";
-        return;
-    }
-    for (Student s : students) {
-        if(specialtyIndex == SpecialtyList::findSpecialty(s.getSpecialty()) && course == s.getCourse()) std::cout << s << std::endl;
-    }
+    else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
 }
-void enrollin(){}
-void addgrade(){}
+
+void enrollin(int fn, std::string discipline) {
+    if (openedFile) {
+        if(alreadyEnrolledFN(fn)) {
+            int studentIndex = findFN(fn);
+            int specialtyIndex = SpecialtyList::findSpecialty(students[studentIndex].getSpecialty());
+            int disciplineIndex = SpecialtyList::findDisciplineInSpecialty(students[studentIndex].getSpecialty(), discipline);
+            if (disciplineIndex == -1) {
+                std::cerr << "This discipline doesn't exist!\n";
+                return;
+            }
+            if (checkAlreadyEnrolledDiscipline(studentIndex, specialtyIndex, disciplineIndex)) {
+                std::cerr << "This discipline is already enrolled for this student!\n";
+                return;
+            }
+            if(students[studentIndex].getCourse() == SpecialtyList::specialties[specialtyIndex].getAvailableDisciplines()[disciplineIndex].getAvailableForCourse()) {  
+                students[studentIndex].addDiscipline(SpecialtyList::specialties[specialtyIndex].getAvailableDisciplines()[disciplineIndex]);
+                std::cout << "The discipline was added successfully!\n";
+            }
+            else std::cerr << "The student doesn't meet the requierements to add this discipline!\n";
+        }
+        else std::cerr << "A student with this faculty number hasn't been found!\n";
+    }
+    else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
+}
+
+void addgrade(int fn, std::string discipline, double grade) {
+    if (openedFile) {
+        if(alreadyEnrolledFN(fn)) {
+            int studentIndex = findFN(fn);
+            int specialtyIndex = SpecialtyList::findSpecialty(students[studentIndex].getSpecialty());
+            int studentDisciplineIndex = findStudentDisciplineIndex(studentIndex,discipline);
+            if (studentDisciplineIndex == -1) {
+                std::cerr << "This discipline doesn't exist!\n";
+                return;
+            }
+            if (grade >= 2 && grade <=6) {
+                std::cout << "The grade was added successfully!\n";
+                students[studentIndex].getDisciplines()[studentDisciplineIndex].setGrade(grade);
+                students[studentIndex].getDisciplines()[studentDisciplineIndex].setExam(true);
+            }
+            else std::cerr << "Invalid grade!\n";
+        }
+        else std::cerr << "A student with this faculty number hasn't been found!\n";
+    }
+    else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
+}
+
 void protocol(){}
 void report(){} 
 
@@ -318,27 +394,51 @@ int main () {
         int commandArguments = SH::countQ(command, ' ') + 1;
 
         if (SH::toLowerCase(separatedCommand[0]) == "exit") {
-            delete[] separatedCommand;
-            exit();
+           if (commandArguments > 1) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 1) std::cerr << "Too few arguments for this command!\n";
+            else {
+                delete[] separatedCommand;
+                exit();
+            }
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "open") {
-            separatedCommand[1] = SH::strip(SH::stripBegin(separatedCommand[1],'"'),'"');
-            if(!openedFile) open(separatedCommand[1]);
-            else std::cerr << "There is already an opened file! You can close the file with 'close'\n"; 
+            if (commandArguments > 2) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
+            else {
+                separatedCommand[1] = SH::strip(SH::stripBegin(separatedCommand[1],'"'),'"');
+                if(!openedFile) open(separatedCommand[1]);
+                else std::cerr << "There is already an opened file! You can close the file with 'close'\n"; 
+            }
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "close") {
-            if(openedFile) close();
-            else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
+            if (commandArguments > 1) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 1) std::cerr << "Too few arguments for this command!\n";
+            else {
+                if(openedFile) close();
+                else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
+            }
         }
-        else if (SH::toLowerCase(separatedCommand[0]) == "help") help();
+        else if (SH::toLowerCase(separatedCommand[0]) == "help") {
+            if (commandArguments > 1) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 1) std::cerr << "Too few arguments for this command!\n";
+            else help();
+        }
         else if (SH::toLowerCase(separatedCommand[0]) == "save") {
-            if(openedFile) save();
-            else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
+            if (commandArguments > 1) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 1) std::cerr << "Too few arguments for this command!\n";
+            else {
+                if(openedFile) save();
+                else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
+            }
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "saveas") {
-            separatedCommand[1] = SH::strip(SH::stripBegin(separatedCommand[1],'"'),'"');
-            if(openedFile) saveas(separatedCommand[1]);
-            else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
+            if (commandArguments > 2) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
+            else {
+                separatedCommand[1] = SH::strip(SH::stripBegin(separatedCommand[1],'"'),'"');
+                if(openedFile) saveas(separatedCommand[1]);
+                else std::cerr << "There is not opened file! You can open file with 'open <file path>'\n";
+            }
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "print") {
             if (commandArguments > 2) std::cerr << "Too much arguments for this command!\n";
@@ -395,6 +495,22 @@ int main () {
             else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
             else {
                 if (SH::isNumber(separatedCommand[1])) resume(std::stoi(separatedCommand[1]));
+                else std::cerr << "Invalid arguments!\n"; 
+            }
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "enrollin") {
+            if (commandArguments > 3) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 3) std::cerr << "Too few arguments for this command!\n";
+            else {
+                if (SH::isNumber(separatedCommand[1])) enrollin(std::stoi(separatedCommand[1]),SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'));
+                else std::cerr << "Invalid arguments!\n"; 
+            }
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "addgrade") {
+            if (commandArguments > 4) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 4) std::cerr << "Too few arguments for this command!\n";
+            else {
+                if (SH::isNumber(separatedCommand[1]) && SH::isNumber(separatedCommand[3])) addgrade(std::stoi(separatedCommand[1]), SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'), std::stod(separatedCommand[3]));
                 else std::cerr << "Invalid arguments!\n"; 
             }
         }

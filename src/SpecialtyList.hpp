@@ -11,6 +11,7 @@ class SpecialtyList {
         static std::vector<Specialty> specialties;
 
         static size_t findSpecialty(std::string);
+        static int findDisciplineInSpecialty(std::string, std::string);
         static bool checkPassedCompDisciplines(Student&);
 
         static void addSpecialty();

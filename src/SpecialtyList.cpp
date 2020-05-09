@@ -11,6 +11,7 @@
 #include <vector>
 #include <cstring>
 #include <string>
+#include <algorithm>
 
 #define SH StringHelper
 
@@ -33,6 +34,15 @@ size_t SpecialtyList::findSpecialty(std::string str) {
         if (SH::toLowerCase(str) == SH::toLowerCase(specialties[i].getName())) return i;
     }
     return 0;
+}
+
+int SpecialtyList::findDisciplineInSpecialty(std::string specialty, std::string discipline) {
+    size_t specialtyIndex = findSpecialty(specialty);
+    if (SH::isNumber(discipline)) if(std::stoi(discipline) > 0 && std::stoi(discipline) <= specialties[specialtyIndex].getAvailableDisciplines().size()) return std::stoi(discipline)-1;
+    for (size_t i = 0; i < specialties[specialtyIndex].getAvailableDisciplines().size(); i++) {
+        if (SH::toLowerCase(discipline) == SH::toLowerCase(specialties[specialtyIndex].getAvailableDisciplines()[i].getName())) return i;
+    }
+    return -1;
 }
 
 bool SpecialtyList::checkPassedCompDisciplines(Student& st) {
@@ -118,6 +128,7 @@ void SpecialtyList::addDiscipline () {
     std::cin.ignore();
     specialties[spID].addDiscipline(Discipline(disName,t,availableFor,credits));
     std::cout << "Discipline \"" << specialties[spID].getAvailableDisciplines().back().getName() << "\" added successfully to specialty \"" << specialties[spID].getName() << "\"!\n";
+    std::sort(specialties[spID].getAvailableDisciplines().begin(), specialties[spID].getAvailableDisciplines().end(), [](Discipline x, Discipline y){return x.getAvailableForCourse() < y.getAvailableForCourse();});
 }
 
 void SpecialtyList::removeDiscipline () {

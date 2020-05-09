@@ -17,6 +17,7 @@ class Discipline{
         Discipline(std::string, Type, int, double);
 
         void setExam(bool);
+        void setGrade(double);
 
         double getGrade() const;
         double getCredits() const;
