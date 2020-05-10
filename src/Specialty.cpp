@@ -1,5 +1,6 @@
 #include "Specialty.hpp"
 #include "Helpers/StringHelper.hpp"
+#include "EnumConvertions.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -62,7 +63,7 @@ std::vector<Discipline>& Specialty::getAvailableDisciplines() {
 void Specialty::printAvailableDisciplines() const{
     std::cout << "Disciplines for specialty \"" << this -> name << "\":\n"; 
     for(int i = 0; i < availableDisciplines.size(); i++) {
-        std::cout << i+1 << ": " << availableDisciplines[i].getName() << std::endl;
+        std::cout << i+1 << ": " << availableDisciplines[i].getName() << " (" << EnumConvertions::getType(availableDisciplines[i].getType()) << ", Course: " << availableDisciplines[i].getAvailableForCourse() << ")" << std::endl;
     }
 }
 
@@ -99,7 +100,7 @@ void Specialty::read(std::ifstream& in) {
 
 std::ostream& operator << (std::ostream& out, const Specialty& other) {
     out << "Specialty name: " << other.name << std::endl
-        << "Min Credits: " << other.minCredits;
+        << "Min Credits: " << other.minCredits << std::endl;
 
     for(Discipline d: other.availableDisciplines) {
         out << d << std::endl;

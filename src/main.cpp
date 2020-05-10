@@ -22,11 +22,15 @@ std::vector<Student> students;
 
 /*
 TODO:
-1. Fix change()
+1. Add header to the regular file
 2. Make the rest of the functions
 3. Finish the credit system
-4. Make some disciplines with multiple courses for enrolling
+4. Make optional disciplines with multiple courses for enrolling
 5. Complete specialties.dat 
+6. Add const where it needs
+7. Move open file checker in the functions
+8. The files should use their own file extension
+9. Add automatically enrolling of the compulsory function when advancing or enrolling to specialty
 */
 
 bool checkAlreadyEnrolledDiscipline(int studentIndex, int specialtyIndex, int disciplineIndex) {
@@ -212,24 +216,33 @@ void change(int fn, std::string option, std::string value) {
             size_t studentIndex = findFN(fn);
             if (students[studentIndex].getStatus() != Student_Status::GRADUATED) {
                 if (SH::toLowerCase(option) == "specialty") {
-                    if (SH::isNumber(value)) {
-                        int specialtyIndex = std::stoi(value);
-                        if (specialtyIndex < SpecialtyList::specialties.size() && specialtyIndex > 0) students[studentIndex].setSpecialty(SpecialtyList::specialties[specialtyIndex].getName());
-                        else std::cerr << "Not valid value!\n";
+                    int specialtyIndex = SpecialtyList::findSpecialty(value);
+                    if (specialtyIndex != 0) {
+                        if(SpecialtyList::checkPassedMutualCompDisciplines(students[studentIndex],specialtyIndex)) {
+                            students[studentIndex].setSpecialty(SpecialtyList::specialties[specialtyIndex].getName());
+                            std::cout << "The student's specialty was changed successfully!\n";
+                        }
+                        else std::cerr << "The student doesn't meet the requierements to change the specialty!\n";
                     }
-                    else {
-                        size_t specialtyIndex = SpecialtyList::findSpecialty(value);
-                        if(specialtyIndex != 0) students[studentIndex].setSpecialty(SpecialtyList::specialties[specialtyIndex].getName());
-                        else std::cerr << "Not valid value!\n";
-                    }
+                    else std::cerr << "Not valid value!\n";
                 }
-                else if (SH::toLowerCase(option) == "year") {
-
+                else if (SH::toLowerCase(option) == "course") {
+                    if (SH::isNumber(value)) {
+                        if(students[studentIndex].getCourse() == std::stoi(value) - 1 && SpecialtyList::checkPassedMutualCompDisciplines(students[studentIndex], SpecialtyList::findSpecialty(students[studentIndex].getSpecialty()))) {
+                            std::cout << "The student's course was changed successfully!\n";
+                            students[studentIndex].advance();
+                        }
+                        else std::cerr << "The student doesn't meet the requierements to change the course!\n";
+                    }
+                    else std::cerr << "Not valid value!\n";
                 }
                 else if (SH::toLowerCase(option) == "group") {
                     if (SH::isNumber(value)) {
                         int group = std::stoi(value);
-                        if (group > 0) students[studentIndex].setGroup(group);
+                        if (group > 0) {
+                            students[studentIndex].setGroup(group);
+                            std::cout << "The student's group was changed successfully!\n";
+                        }
                         else std::cerr << "Not valid value!\n";
                     }
                     else std::cerr << "Not valid value!\n";
@@ -479,6 +492,14 @@ int main () {
             else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
             else {
                 if (SH::isNumber(separatedCommand[1])) graduate(std::stoi(separatedCommand[1]));
+                else std::cerr << "Invalid arguments!\n"; 
+            }
+        }
+        else if (SH::toLowerCase(separatedCommand[0]) == "change") {
+            if (commandArguments > 4) std::cerr << "Too much arguments for this command!\n";
+            else if (commandArguments < 4) std::cerr << "Too few arguments for this command!\n";
+            else {
+                if (SH::isNumber(separatedCommand[1])) change(std::stoi(separatedCommand[1]), SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'), SH::strip(SH::stripBegin(separatedCommand[3],'"'),'"'));
                 else std::cerr << "Invalid arguments!\n"; 
             }
         }

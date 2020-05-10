@@ -45,12 +45,14 @@ int SpecialtyList::findDisciplineInSpecialty(std::string specialty, std::string 
     return -1;
 }
 
-bool SpecialtyList::checkPassedCompDisciplines(Student& st) {
+bool SpecialtyList::checkPassedMutualCompDisciplines(Student& st, int otherSpecialtyIndex) {
     int countPreviousCompDisciplines = 0, countPassedPreviousCompDisciplines = 0;
     for(Discipline d : st.getDisciplines()) {
-        if(d.getAvailableForCourse() < st.getCourse()) {
-            countPreviousCompDisciplines++;
-            if(d.getHadExam() && d.getGrade() >= 3) countPassedPreviousCompDisciplines++;
+        for(Discipline a : specialties[otherSpecialtyIndex].getAvailableDisciplines()) {
+            if(d.getName() == a.getName() && d.getAvailableForCourse() < st.getCourse() && a.getAvailableForCourse() < st.getCourse() && a.getType() == Type::COMPULSORY && d.getType() == Type::COMPULSORY) {
+                countPreviousCompDisciplines++;
+                if(d.getHadExam() && d.getGrade() >= 3) countPassedPreviousCompDisciplines++;
+            }
         }
     }
     return countPreviousCompDisciplines == countPassedPreviousCompDisciplines;
@@ -61,6 +63,7 @@ void SpecialtyList::addSpecialty () {
     double minCredits;
     std::cout << "Enter specialty name: ";
     std::getline(std::cin, name);
+    name = SH::strip(SH::stripBegin(name));
     for(Specialty sp : specialties) {
         if(SH::toLowerCase(name) == SH::toLowerCase(sp.getName())) {
             std::cerr << "A specialty with this name already exists!\n";
@@ -79,6 +82,7 @@ void SpecialtyList::removeSpecialty () {
     std::string name;
     std::cout << "Enter specialty name or id: ";
     std::getline(std::cin, name);
+    name = SH::strip(SH::stripBegin(name));
     if (StringHelper::isNumber(name) && std::stoi(name) < specialties.size()) {
         std::cout << "Specialty \"" << specialties[std::stoi(name)].getName() << "\" removed successfully!\n";
         specialties.erase(specialties.begin()+std::stoi(name));
@@ -100,6 +104,7 @@ void SpecialtyList::addDiscipline () {
     std::string name;
     std::cout << "Enter specialty name or id: ";
     std::getline(std::cin, name);
+    name = SH::strip(SH::stripBegin(name));
     int spID = 0;
     if (StringHelper::isNumber(name)) spID = std::stoi(name);
     else {
@@ -115,9 +120,11 @@ void SpecialtyList::addDiscipline () {
     std::string disName;
     std::cout << "Enter discipline name: ";
     std::getline(std::cin, disName);
+    disName = SH::strip(SH::stripBegin(disName));
     std::string typeName;
     std::cout << "Enter discipline type (1 - Optional, 2 - Compulsory): ";
     std::getline(std::cin, typeName);
+    typeName = SH::strip(SH::stripBegin(typeName));
     Type t = EnumConvertions::stringToType(typeName);
     int availableFor = 0;
     std::cout << "Available for course: ";
@@ -136,6 +143,7 @@ void SpecialtyList::removeDiscipline () {
     std::cout << "Enter specialty name or id: ";
     std::getline(std::cin, name);
     int spID = 0;
+    name = SH::strip(SH::stripBegin(name));
     if (StringHelper::isNumber(name)) spID = std::stoi(name);
     else {
         for (int i = 1; i < specialties.size(); i++) {
@@ -150,6 +158,7 @@ void SpecialtyList::removeDiscipline () {
     std::string disName;
     std::cout << "Enter discipline name or id: ";
     std::getline(std::cin, disName);
+    disName = SH::strip(SH::stripBegin(disName));
     int dsID = 0;
     if (StringHelper::isNumber(disName)) dsID = std::stoi(disName)-1;
     else {
@@ -175,6 +184,7 @@ void SpecialtyList::listDisciplines() {
     std::string name;
     std::cout << "Enter specialty name or id: ";
     std::getline(std::cin, name);
+    name = SH::strip(SH::stripBegin(name));
     int spID = 0;
     if (StringHelper::isNumber(name)) spID = std::stoi(name);
     else {

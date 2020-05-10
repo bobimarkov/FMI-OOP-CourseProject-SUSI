@@ -19,6 +19,7 @@ class Discipline{
         void setExam(bool);
         void setGrade(double);
 
+        Type getType() const;
         double getGrade() const;
         double getCredits() const;
         bool getHadExam() const;
