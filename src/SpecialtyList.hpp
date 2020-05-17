@@ -12,7 +12,7 @@ class SpecialtyList {
 
         static size_t findSpecialty(std::string);
         static int findDisciplineInSpecialty(std::string, std::string);
-        static bool checkPassedMutualCompDisciplines(Student&, int);
+        static int countNotPassedMutualCompDisciplines(Student&, int);
 
         static void addSpecialty();
         static void removeSpecialty();

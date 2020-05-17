@@ -37,17 +37,6 @@ void Specialty::addDiscipline(Discipline discipline) {
     this -> availableDisciplines.push_back(discipline);
 }
 
-Specialty Specialty::stringToSpecialty (std::string str) {
-    std::string lowerStr = SH::toLowerCase(str);
-    int strNum = 0;
-    if (SH::isNumber(str)) strNum = std::stoi(str); 
-    if (lowerStr == "informatics" || strNum == 1) return Specialty("Informatics",50);
-    else if (lowerStr == "computer_science" || lowerStr == "computer science" || strNum == 2) return Specialty("Computer science", 52);
-    else if (lowerStr == "software_engineering" || lowerStr == "software engineering" || strNum == 3) return Specialty("Software engineering", 60);
-    else if (lowerStr == "math_and_informatics" || lowerStr == "math and informatics" || strNum == 4) return Specialty("Math and Informatics", 50);
-    else return Specialty();
-}
-
 std::string Specialty::getName() const {
     return this -> name;
 }
@@ -63,8 +52,22 @@ std::vector<Discipline>& Specialty::getAvailableDisciplines() {
 void Specialty::printAvailableDisciplines() const{
     std::cout << "Disciplines for specialty \"" << this -> name << "\":\n"; 
     for(int i = 0; i < availableDisciplines.size(); i++) {
-        std::cout << i+1 << ": " << availableDisciplines[i].getName() << " (" << EnumConvertions::getType(availableDisciplines[i].getType()) << ", Course: " << availableDisciplines[i].getAvailableForCourse() << ")" << std::endl;
+        std::cout << i+1 << ": " << availableDisciplines[i].getName() << " (" << EnumConvertions::getType(availableDisciplines[i].getType());
+        std::cout << ", " << ((availableDisciplines[i].getAvailableForCourses().size() > 1) ? "Courses: " : "Course: ") << availableDisciplines[i].getAvailableForCourses()[0];
+        for(int j = 1; j < availableDisciplines[i].getAvailableForCourses().size(); j++) {
+            std::cout << " " << availableDisciplines[i].getAvailableForCourses()[j];
+        }
+        std::cout << ")" <<  std::endl;
     }
+}
+
+int Specialty::checkMaxAvailableCourse() const {
+    int course = 1;
+    for(Discipline d : availableDisciplines) {
+        int currentDisciplineCourse = d.getMaxAvailableCourse();
+        if (currentDisciplineCourse > course) course = currentDisciplineCourse;
+    } 
+    return course;
 }
 
 void Specialty::write(std::ofstream& out) {
@@ -74,7 +77,7 @@ void Specialty::write(std::ofstream& out) {
     out.write(name.c_str(), sizeof(char)*nameSize);
     out.write(reinterpret_cast<char*>(&minCredits), sizeof(minCredits));
     out.write(reinterpret_cast<char*>(&disciplineSize), sizeof(disciplineSize));
-    for(int i = 0; i < disciplineSize; i++) {
+    for(int i = 0; i < disciplineSize; i++) { 
         availableDisciplines[i].write(out);
     }
 }
@@ -83,11 +86,9 @@ void Specialty::read(std::ifstream& in) {
     int nameSize;
     int disciplineSize;
     in.read(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
-    char* nameStr = new char[nameSize + 1];
-    in.read(nameStr, sizeof(char)*nameSize);
-    nameStr[nameSize] = 0;
-    this -> name = nameStr;
-    delete[] nameStr;
+    name.resize(nameSize);
+    in.read(&name[0], sizeof(char)*nameSize);
+
     in.read(reinterpret_cast<char*>(&minCredits), sizeof(minCredits));
     in.read(reinterpret_cast<char*>(&disciplineSize), sizeof(disciplineSize));
 
@@ -100,10 +101,11 @@ void Specialty::read(std::ifstream& in) {
 
 std::ostream& operator << (std::ostream& out, const Specialty& other) {
     out << "Specialty name: " << other.name << std::endl
-        << "Min Credits: " << other.minCredits << std::endl;
+        << "Min Credits: " << other.minCredits << std::endl << std::endl
+        << "Disciplines:" << std::endl;
 
-    for(Discipline d: other.availableDisciplines) {
-        out << d << std::endl;
+    for(int i = 0; i < other.availableDisciplines.size(); i++) {
+        out << i+1 << ": " << other.availableDisciplines[i] << std::endl;
     }
     return out;
 }

@@ -1,30 +1,29 @@
 #ifndef DISCIPLINE_HPP
 #define DISCIPLINE_HPP
 #include <iostream>
+#include <vector>
 #include "EnumerationClasses.hpp"
 
 class Discipline{
     private:
         std::string name;
         Type type; 
-        int availableForCourse;
-        bool hadExam;
-        double grade;
+        std::vector<int> availableForCourses;
         double credits;
+
     public:
         Discipline();
         Discipline(const Discipline&);
-        Discipline(std::string, Type, int, double);
-
-        void setExam(bool);
-        void setGrade(double);
+        Discipline(std::string, Type, std::vector<int>, double);
 
         Type getType() const;
-        double getGrade() const;
         double getCredits() const;
-        bool getHadExam() const;
-        int getAvailableForCourse() const;
+        std::vector<int> getAvailableForCourses() const;
         std::string getName() const;
+        int getMinAvailableCourse() const;
+        int getMaxAvailableCourse() const;
+        
+        bool checkMatchCurrentCourse(int) const;
 
         Discipline& operator = (const Discipline&);
 

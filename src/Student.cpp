@@ -1,10 +1,15 @@
 #include "Student.hpp"
+#include "SpecialtyList.hpp"
+#include "Helpers/StringHelper.hpp"
 #include "EnumerationClasses.hpp"
 #include "EnumConvertions.hpp"
 
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <tuple>
+
+#define SH StringHelper
 
 Student::Student(): name(""), faculty_number(0), course(0), group(0), status(Student_Status::UNKNOWN), average_grade(0) {
     disciplines.clear();
@@ -25,24 +30,50 @@ Student::Student(int faculty_number, std::string specialty, int group, std::stri
     this -> disciplines.clear();
 }
 
-int Student::getFN () {
+int Student::getFN () const {
     return this -> faculty_number;
 }
 
-int Student::getCourse () {
+int Student::getCourse () const {
     return this -> course;
 }
 
-std::string Student::getSpecialty () {
+int Student::getGroup() const {
+    return this -> group;
+}
+
+std::string Student::getName() const {
+    return this -> name;
+}
+
+std::string Student::getSpecialty () const {
     return this -> specialty;
 }
 
-Student_Status Student::getStatus() {
+Student_Status Student::getStatus() const {
     return this -> status;
 }
 
-std::vector<Discipline>& Student::getDisciplines () {
+std::vector<StudentDiscipline>& Student::getDisciplines () {
     return this -> disciplines;
+}
+
+double Student::getGrade(std::string discipline) const {
+    for (StudentDiscipline d : disciplines) {
+        if (SH::toLowerCase(d.discipline) == SH::toLowerCase(discipline)) return d.grade;
+    }
+    return -1;
+}
+
+double Student::getAverageGrade() const {
+    return this -> average_grade;
+}
+
+int Student::getDisciplineEnrolledCourse(std::string discipline) const {
+    for (StudentDiscipline d : disciplines) {
+        if (SH::toLowerCase(d.discipline) == SH::toLowerCase(discipline)) return d.enrolledCourse;
+    }
+    return -1;
 }
 
 Student& Student::operator = (const Student& other) {
@@ -58,8 +89,17 @@ Student& Student::operator = (const Student& other) {
     return *this;
 }
 
-void Student::addDiscipline (Discipline discipline) {
-    this -> disciplines.push_back(discipline);
+double Student::countCredits () const {
+    double counter = 0;
+    for(int i = 0; i < disciplines.size(); i++) {
+        if (disciplines[i].grade >= 3) counter += SpecialtyList::specialties[SpecialtyList::findSpecialty(specialty)].getAvailableDisciplines()[SpecialtyList::findDisciplineInSpecialty(specialty, disciplines[i].discipline)].getCredits();
+    }
+    return counter;
+}
+
+void Student::addDiscipline (Discipline& discipline) {
+    int course = discipline.getType() == Type::COMPULSORY ? discipline.getMinAvailableCourse() : this -> course;
+    this -> disciplines.push_back(StudentDiscipline(discipline.getName(), 2, course));
 }
 
 void Student::advance () {
@@ -79,12 +119,20 @@ void Student::setGroup (int group) {
 }
 
 void Student::calculateAvgGrade () {
-    int sumGrades = 0, countNotTaken = 0;
-    for (Discipline d : this -> disciplines) {
-        if(d.getHadExam()) sumGrades += d.getGrade();
-        else countNotTaken++;
+    double sumGrades = 0;
+    for (StudentDiscipline d : disciplines) {
+        sumGrades += d.grade;
     }
-    this -> average_grade = sumGrades/(this -> disciplines.size() - countNotTaken);
+    this -> average_grade = sumGrades/disciplines.size();
+}
+
+bool Student::isDisciplineEnrolled (std::string discipline) {
+    int specialtyIndex = SpecialtyList::findSpecialty(specialty);
+    int disciplineIndex = SpecialtyList::findDisciplineInSpecialty(specialty, discipline);
+    for (StudentDiscipline d : disciplines) {
+        if (SH::toLowerCase(d.discipline) == SH::toLowerCase(discipline) && SpecialtyList::specialties[specialtyIndex].getAvailableDisciplines()[disciplineIndex].checkMatchCurrentCourse(d.enrolledCourse)) return true;
+    }
+    return false;
 }
 
 void Student::write(std::ofstream& out) {
@@ -106,29 +154,28 @@ void Student::write(std::ofstream& out) {
     int disciplinesSize = this -> disciplines.size();
     out.write(reinterpret_cast<char*>(&disciplinesSize), sizeof(disciplinesSize));
     for(int i = 0; i < disciplinesSize; i++) {
-        this -> disciplines[i].write(out);
+        int disciplineNameSize = disciplines[i].discipline.length();
+        out.write(reinterpret_cast<char*>(&disciplineNameSize), sizeof(disciplineNameSize));
+        out.write(disciplines[i].discipline.c_str(), sizeof(char)*disciplineNameSize);
+
+        out.write(reinterpret_cast<char*>(&disciplines[i].grade), sizeof(disciplines[i].grade));
+        out.write(reinterpret_cast<char*>(&disciplines[i].enrolledCourse), sizeof(disciplines[i].enrolledCourse));
     }
 }
 
 void Student::read(std::ifstream& in) {
     int nameSize;
     in.read(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
-    char* nameStr = new char[nameSize + 1];
-    in.read(nameStr, sizeof(char)*nameSize);
-    nameStr[nameSize] = 0;
-    this -> name = nameStr;
-    delete[] nameStr;
+    name.resize(nameSize);
+    in.read(&name[0], sizeof(char)*nameSize);
 
     in.read(reinterpret_cast<char*>(&faculty_number), sizeof(faculty_number));
     in.read(reinterpret_cast<char*>(&course), sizeof(course));
 
     int specialtyNameSize;
     in.read(reinterpret_cast<char*>(&specialtyNameSize), sizeof(specialtyNameSize));
-    char* specialtyNameStr = new char[specialtyNameSize + 1];
-    in.read(specialtyNameStr, sizeof(char)*specialtyNameSize);
-    specialtyNameStr[specialtyNameSize] = 0;
-    this -> specialty = specialtyNameStr;
-    delete[] specialtyNameStr;
+    specialty.resize(specialtyNameSize);
+    in.read(&specialty[0], sizeof(char)*specialtyNameSize);
 
     in.read(reinterpret_cast<char*>(&group), sizeof(group));
     in.read(reinterpret_cast<char*>(&status), sizeof(status));
@@ -137,9 +184,19 @@ void Student::read(std::ifstream& in) {
     int disciplinesSize;
     in.read(reinterpret_cast<char*>(&disciplinesSize), sizeof(disciplinesSize));
     for(int i = 0; i < disciplinesSize; i++) {
-        Discipline d;
-        d.read(in);
-        this -> disciplines.push_back(d);
+        std::string disciplineName;
+        int disciplineNameSize, disciplineEnrolledCourse;
+        double disciplineGrade;
+
+        in.read(reinterpret_cast<char*>(&disciplineNameSize), sizeof(disciplineNameSize));
+        disciplineName.resize(disciplineNameSize);
+        in.read(&disciplineName[0], sizeof(char)*disciplineNameSize);
+
+        in.read(reinterpret_cast<char*>(&disciplineGrade), sizeof(disciplineGrade));
+        in.read(reinterpret_cast<char*>(&disciplineEnrolledCourse), sizeof(disciplineEnrolledCourse));
+
+        int specialtyIndex = SpecialtyList::findSpecialty(specialty);
+        this -> disciplines.push_back(StudentDiscipline(disciplineName, disciplineGrade, disciplineEnrolledCourse));
     }
 }
 
@@ -150,10 +207,17 @@ std::ostream& operator << (std::ostream& out, const Student& other) {
         << "Specialty: " << other.specialty << std::endl
         << "Group: " << other.group << std::endl
         << "Status: " << EnumConvertions::getStudentStatus(other.status) << std::endl
-        << "Average grade: " << other.average_grade << std::endl
         << "\nDisciplines:\n";
+
     for (int i = 0; i < other.disciplines.size(); i++) {
-        out << std::endl << i+1 << ":" << other.disciplines[i] << std::endl;
+        int disciplineIndex = SpecialtyList::findDisciplineInSpecialty(other.specialty, other.disciplines[i].discipline);
+        int specialtyIndex = SpecialtyList::findSpecialty(other.specialty);
+        out << i+1 << ": " 
+            << other.disciplines[i].discipline << " - "
+            << "Type: " << EnumConvertions::getType(SpecialtyList::specialties[specialtyIndex].getAvailableDisciplines()[disciplineIndex].getType())
+            << ", Course: " << other.disciplines[i].enrolledCourse
+            << ", Grade: " << other.disciplines[i].grade
+            << std::endl;
     }
     return out;
 }

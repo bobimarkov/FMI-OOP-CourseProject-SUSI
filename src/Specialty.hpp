@@ -19,13 +19,12 @@ class Specialty {
         
         void addDiscipline(Discipline);
 
-        static Specialty stringToSpecialty (std::string);
-
         std::string getName() const;
         double getMinCredits() const;
         std::vector<Discipline>& getAvailableDisciplines();
 
         void printAvailableDisciplines() const; 
+        int checkMaxAvailableCourse() const;
 
         void write(std::ofstream&);
         void read(std::ifstream&);

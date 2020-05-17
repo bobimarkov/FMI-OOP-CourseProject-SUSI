@@ -12,6 +12,7 @@
 #include <cstring>
 #include <string>
 #include <algorithm>
+#include <tuple>
 
 #define SH StringHelper
 
@@ -29,7 +30,7 @@ bool checkHeader (fileHeader restored) {
 std::vector<Specialty> SpecialtyList::specialties{Specialty()};
 
 size_t SpecialtyList::findSpecialty(std::string str) {
-    if(SH::isNumber(str)) if (std::stoi(str) < SpecialtyList::specialties.size() && std::stoi(str) >= 0) return std::stoi(str);
+    if(SH::isNumber(str) && std::atoi(str.c_str()) < SpecialtyList::specialties.size() && std::atoi(str.c_str()) >= 0) return std::atoi(str.c_str());
     for (int i = 0; i < SpecialtyList::specialties.size(); i++) {
         if (SH::toLowerCase(str) == SH::toLowerCase(specialties[i].getName())) return i;
     }
@@ -38,24 +39,49 @@ size_t SpecialtyList::findSpecialty(std::string str) {
 
 int SpecialtyList::findDisciplineInSpecialty(std::string specialty, std::string discipline) {
     size_t specialtyIndex = findSpecialty(specialty);
-    if (SH::isNumber(discipline)) if(std::stoi(discipline) > 0 && std::stoi(discipline) <= specialties[specialtyIndex].getAvailableDisciplines().size()) return std::stoi(discipline)-1;
+    if (SH::isNumber(discipline) && std::atoi(discipline.c_str()) > 0 && std::atoi(discipline.c_str()) <= specialties[specialtyIndex].getAvailableDisciplines().size()) return std::atoi(discipline.c_str())-1;
     for (size_t i = 0; i < specialties[specialtyIndex].getAvailableDisciplines().size(); i++) {
         if (SH::toLowerCase(discipline) == SH::toLowerCase(specialties[specialtyIndex].getAvailableDisciplines()[i].getName())) return i;
     }
     return -1;
 }
 
-bool SpecialtyList::checkPassedMutualCompDisciplines(Student& st, int otherSpecialtyIndex) {
-    int countPreviousCompDisciplines = 0, countPassedPreviousCompDisciplines = 0;
-    for(Discipline d : st.getDisciplines()) {
+int SpecialtyList::countNotPassedMutualCompDisciplines(Student& st, int otherSpecialtyIndex) {
+    int countAllPreviousCompDisciplines = 0, countPassedPreviousCompDisciplines = 0;
+    int studentSpecialtyIndex = findSpecialty(st.getSpecialty());
+    for(StudentDiscipline d : st.getDisciplines()) {
+        int disciplineIndex = findDisciplineInSpecialty(st.getSpecialty(), d.discipline);
         for(Discipline a : specialties[otherSpecialtyIndex].getAvailableDisciplines()) {
-            if(d.getName() == a.getName() && d.getAvailableForCourse() < st.getCourse() && a.getAvailableForCourse() < st.getCourse() && a.getType() == Type::COMPULSORY && d.getType() == Type::COMPULSORY) {
-                countPreviousCompDisciplines++;
-                if(d.getHadExam() && d.getGrade() >= 3) countPassedPreviousCompDisciplines++;
+            if(d.discipline == a.getName() && d.enrolledCourse < st.getCourse() && a.getMinAvailableCourse() < st.getCourse() && a.getType() == Type::COMPULSORY && specialties[studentSpecialtyIndex].getAvailableDisciplines()[disciplineIndex].getType() == Type::COMPULSORY) {
+                countAllPreviousCompDisciplines++;
+                if(d.grade >= 3) countPassedPreviousCompDisciplines++;
             }
         }
     }
-    return countPreviousCompDisciplines == countPassedPreviousCompDisciplines;
+    return countAllPreviousCompDisciplines - countPassedPreviousCompDisciplines;
+}
+
+bool containsInVector(std::vector<int> vector, int element) {
+    for (int i : vector) {
+        if (i == element) return true;
+    }
+    return false;
+}
+
+std::vector<int> splitAvailableCourses (std::string availableCourses) {
+    availableCourses = SH::strip(SH::stripBegin(SH::clearAllConsecutiveSpaces(availableCourses)));
+    std::string* splittedCourses = SH::split(availableCourses);
+    int countCourses = SH::count(availableCourses, ' ') + 1;
+    
+    std::vector<int> courses;
+
+    for (int i = 0; i < countCourses; i++) {
+        if (SH::isNumber(splittedCourses[i]) && !containsInVector(courses, std::atoi(splittedCourses[i].c_str()))) courses.push_back(std::atoi(splittedCourses[i].c_str()));
+    }
+
+    delete[] splittedCourses;
+    std::sort(courses.begin(), courses.end());
+    return courses;
 }
 
 void SpecialtyList::addSpecialty () {
@@ -83,9 +109,9 @@ void SpecialtyList::removeSpecialty () {
     std::cout << "Enter specialty name or id: ";
     std::getline(std::cin, name);
     name = SH::strip(SH::stripBegin(name));
-    if (StringHelper::isNumber(name) && std::stoi(name) < specialties.size()) {
-        std::cout << "Specialty \"" << specialties[std::stoi(name)].getName() << "\" removed successfully!\n";
-        specialties.erase(specialties.begin()+std::stoi(name));
+    if (StringHelper::isNumber(name) && std::atoi(name.c_str()) < specialties.size()) {
+        std::cout << "Specialty \"" << specialties[std::atoi(name.c_str())].getName() << "\" removed successfully!\n";
+        specialties.erase(specialties.begin()+std::atoi(name.c_str()));
         removed = true;
     }
     else {
@@ -106,7 +132,7 @@ void SpecialtyList::addDiscipline () {
     std::getline(std::cin, name);
     name = SH::strip(SH::stripBegin(name));
     int spID = 0;
-    if (StringHelper::isNumber(name)) spID = std::stoi(name);
+    if (StringHelper::isNumber(name)) spID = std::atoi(name.c_str());
     else {
         for (int i = 1; i < specialties.size(); i++) {
             if (SH::toLowerCase(name) == SH::toLowerCase(specialties[i].getName())) spID = i;
@@ -126,16 +152,24 @@ void SpecialtyList::addDiscipline () {
     std::getline(std::cin, typeName);
     typeName = SH::strip(SH::stripBegin(typeName));
     Type t = EnumConvertions::stringToType(typeName);
-    int availableFor = 0;
-    std::cout << "Available for course: ";
-    std::cin >> availableFor;
+    if (t == Type::UNKNOWN) {
+        std::cerr << "Invalid type!\n";
+        return;
+    }
+    std::string availableFor;
+    std::cout << "Available for courses: ";
+    std::getline(std::cin, availableFor);  
+    std::vector<int> courses = splitAvailableCourses(availableFor);
+
     int credits = 0;
-    std::cout << "Discipline credits: ";
-    std::cin >> credits;
+    if (t == Type::OPTIONAL) {
+        std::cout << "Discipline credits: ";
+        std::cin >> credits;
+    }
     std::cin.ignore();
-    specialties[spID].addDiscipline(Discipline(disName,t,availableFor,credits));
+    specialties[spID].addDiscipline(Discipline(disName,t,courses,credits));
     std::cout << "Discipline \"" << specialties[spID].getAvailableDisciplines().back().getName() << "\" added successfully to specialty \"" << specialties[spID].getName() << "\"!\n";
-    std::sort(specialties[spID].getAvailableDisciplines().begin(), specialties[spID].getAvailableDisciplines().end(), [](Discipline x, Discipline y){return x.getAvailableForCourse() < y.getAvailableForCourse();});
+    std::sort(specialties[spID].getAvailableDisciplines().begin(), specialties[spID].getAvailableDisciplines().end(), [](Discipline x, Discipline y){return x.getMinAvailableCourse() < y.getMinAvailableCourse();});
 }
 
 void SpecialtyList::removeDiscipline () {
@@ -144,7 +178,7 @@ void SpecialtyList::removeDiscipline () {
     std::getline(std::cin, name);
     int spID = 0;
     name = SH::strip(SH::stripBegin(name));
-    if (StringHelper::isNumber(name)) spID = std::stoi(name);
+    if (StringHelper::isNumber(name)) spID = std::atoi(name.c_str());
     else {
         for (int i = 1; i < specialties.size(); i++) {
             if (SH::toLowerCase(name) == SH::toLowerCase(specialties[i].getName())) spID = i;
@@ -160,7 +194,7 @@ void SpecialtyList::removeDiscipline () {
     std::getline(std::cin, disName);
     disName = SH::strip(SH::stripBegin(disName));
     int dsID = 0;
-    if (StringHelper::isNumber(disName)) dsID = std::stoi(disName)-1;
+    if (StringHelper::isNumber(disName)) dsID = std::atoi(disName.c_str())-1;
     else {
         for (int i = 1; i < specialties[spID].getAvailableDisciplines().size(); i++) {
             if (SH::toLowerCase(disName) == SH::toLowerCase(specialties[spID].getAvailableDisciplines()[i].getName())) dsID = i;
@@ -186,7 +220,7 @@ void SpecialtyList::listDisciplines() {
     std::getline(std::cin, name);
     name = SH::strip(SH::stripBegin(name));
     int spID = 0;
-    if (StringHelper::isNumber(name)) spID = std::stoi(name);
+    if (StringHelper::isNumber(name)) spID = std::atoi(name.c_str());
     else {
         for (int i = 1; i < specialties.size(); i++) {
             if (SH::toLowerCase(name) == SH::toLowerCase(specialties[i].getName())) spID = i;
@@ -206,10 +240,10 @@ void SpecialtyList::listAll () {
 }
 
 void SpecialtyList::loadSpecialties() {
-    std::ifstream in("specialties.dat", std::ios::binary | std::ios::in);
+    std::ifstream in("specialties.susi", std::ios::binary | std::ios::in);
     
     if(!in.is_open()) {
-        std::cerr << "Warning: File specialties.dat doesn't exist! Check 'help' to see how you can add new specialty and discipline.\n";
+        std::cerr << "Warning: File specialties.susi doesn't exist! Check 'help' to see how you can add new specialty and discipline.\n";
         return;
     }
 
@@ -221,7 +255,7 @@ void SpecialtyList::loadSpecialties() {
     fileHeader header;
     in.read(reinterpret_cast<char*>(&header),sizeof(header));
     if(!checkHeader(header)) {
-        std::cerr << "Invalid specialties.dat imported!\n";
+        std::cerr << "Invalid specialties.susi imported!\n";
         in.close();
         return;
     }
@@ -236,7 +270,7 @@ void SpecialtyList::loadSpecialties() {
 }
 
 void SpecialtyList::writeSpecialties() {
-    std::ofstream out("specialties.dat", std::ios::binary | std::ios::out);
+    std::ofstream out("specialties.susi", std::ios::binary | std::ios::out);
     //Header
     fileHeader realHeader{"SP", 13094, 201, 974};
     out.write(reinterpret_cast<char*>(&realHeader), sizeof(realHeader));
@@ -245,6 +279,6 @@ void SpecialtyList::writeSpecialties() {
     for (int i = 1; i < specialties.size(); i++) {
         specialties[i].write(out);
     }
-    std::cout << "specialties.dat has been written successfully!\n";
+    std::cout << "specialties.susi has been written successfully!\n";
     out.close();
 }

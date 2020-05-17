@@ -6,6 +6,19 @@
 
 #include <iostream>
 #include <vector>
+#include <tuple>
+
+struct StudentDiscipline {
+    std::string discipline;
+    double grade;
+    int enrolledCourse;
+
+    StudentDiscipline(std::string discipline, double grade, int enrolledCourse) {
+        this -> discipline = discipline;
+        this -> grade = grade;
+        this -> enrolledCourse = enrolledCourse;
+    }
+};
 
 class Student {
     private:
@@ -15,28 +28,37 @@ class Student {
         std::string specialty;
         int group;
         Student_Status status;
-        int average_grade;
-        std::vector<Discipline> disciplines;
+        double average_grade;
+        std::vector<StudentDiscipline> disciplines;
+
     public:
 
-        Student();
+        Student(); 
         Student(int, std::string, int, std::string);
         Student(const Student&);
 
-        int getFN();
-        int getCourse();
-        std::string getSpecialty();
-        Student_Status getStatus();
-        std::vector<Discipline>& getDisciplines ();
+        int getFN() const;
+        int getCourse() const;
+        int getGroup() const;
+        std::string getName() const;
+        std::string getSpecialty() const;
+        Student_Status getStatus() const;
+        std::vector<StudentDiscipline>& getDisciplines();
+        double getGrade(std::string) const;
+        double getAverageGrade() const;
+        int getDisciplineEnrolledCourse(std::string) const;
 
         Student& operator = (const Student&);
 
-        void addDiscipline (Discipline);
+        double countCredits() const; 
+        void addDiscipline (Discipline&);
         void advance ();
         void changeStatus(Student_Status);
         void setSpecialty(std::string);
         void setGroup(int);
+        void addGrade(std::string, double);
         void calculateAvgGrade();
+        bool isDisciplineEnrolled(std::string);
 
         void write(std::ofstream&);
         void read(std::ifstream&);
