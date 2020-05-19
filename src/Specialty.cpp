@@ -103,7 +103,7 @@ std::ostream& operator << (std::ostream& out, const Specialty& other) {
     out << "Specialty name: " << other.name << std::endl
         << "Min Credits: " << other.minCredits << std::endl << std::endl
         << "Disciplines:" << std::endl;
-
+    
     for(int i = 0; i < other.availableDisciplines.size(); i++) {
         out << i+1 << ": " << other.availableDisciplines[i] << std::endl;
     }

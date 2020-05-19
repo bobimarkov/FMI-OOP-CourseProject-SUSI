@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <vector>
-#include <tuple>
 
 struct StudentDiscipline {
     std::string discipline;

@@ -10,18 +10,18 @@ class SpecialtyList {
     public:
         static std::vector<Specialty> specialties;
 
-        static size_t findSpecialty(std::string);
+        static int findSpecialty(std::string);
         static int findDisciplineInSpecialty(std::string, std::string);
         static int countNotPassedMutualCompDisciplines(Student&, int);
 
-        static void addSpecialty();
-        static void removeSpecialty();
+        static void addSpecialty(std::string, double);
+        static void removeSpecialty(std::string);
         
-        static void addDiscipline();
-        static void removeDiscipline();
+        static void addDiscipline(std::string, std::string, std::string, std::string, double);
+        static void removeDiscipline(std::string, std::string);
 
         static void listSpecialties();
-        static void listDisciplines();
+        static void listDisciplines(std::string);
         static void listAll();
 
         static void loadSpecialties();

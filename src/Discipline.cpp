@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <tuple>
 
 Discipline::Discipline(): name(""), type(Type::UNKNOWN), credits(0) {
 
@@ -113,6 +112,6 @@ std::ostream& operator << (std::ostream& out, const Discipline& other) {
     for(int i = 1; i < other.availableForCourses.size(); i++) {
             std::cout << " " << other.availableForCourses[i];
     }
-    out << ", Credits: " << other.credits;
+    if(other.type == Type::OPTIONAL) out << ", Credits: " << other.credits;
     return out;
 }

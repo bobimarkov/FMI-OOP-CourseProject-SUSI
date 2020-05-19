@@ -4,7 +4,6 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
-#include <tuple>
 
 #include "Student.hpp"
 #include "Specialty.hpp"
@@ -185,13 +184,13 @@ void help(){
               << "addgrade <faculty number> <discipline name/id> <grade> - adds a grade to given discipline\n"
               << "protocol <discipline name> - prints protocols of all students enrolled in a given discipline\n"
               << "report <faculty number> - prints academic report of a student's grades\n"
-              << "\nAdministrator commands:\n"
-              << "add specialty - adds a specialty\n"
-              << "remove specialty - removes a specialty\n"
-              << "add discipline - adds a discipline to an existing specialty\n"
-              << "remove discipline - removes a discipline from an existing specialty\n" 
+              << "\nDatabase commands:\n"
+              << "add specialty <specialty name> <minimal credits> - adds a specialty\n"
+              << "remove specialty <specialty name/id> - removes a specialty\n"
+              << "add discipline <specialty name/id> <discipline name> <compulsory/optional> <available for courses> <credits (OPTIONAL DISCIPLINES ONLY)> - adds a discipline to an existing specialty\n"
+              << "remove discipline <specialty name/id> <discipline name/id> - removes a discipline from an existing specialty\n" 
               << "list specialties - prints all available specialties\n"
-              << "list disciplines - prints all available disciplines for a specific specialty\n"
+              << "list disciplines <specialty name/id> - prints all available disciplines for a specific specialty\n"
               << "list all - prints all specialties along with the registered disciplines for each specialty\n"
               << "savespecialties - save all registered specialties along with the disciplines for each specialty in specialties.susi\n";
               
@@ -626,7 +625,7 @@ int main () {
             if (commandArguments > 4) std::cerr << "Too much arguments for this command!\n";
             else if (commandArguments < 4) std::cerr << "Too few arguments for this command!\n";
             else {
-                if (SH::isNumber(separatedCommand[1]) && SH::isNumber(separatedCommand[3])) addgrade(std::atoi(separatedCommand[1].c_str()), SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'), std::stod(separatedCommand[3]));
+                if (SH::isNumber(separatedCommand[1]) && SH::isNumber(separatedCommand[3])) addgrade(std::atoi(separatedCommand[1].c_str()), SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'), std::atof(separatedCommand[3].c_str()));
                 else std::cerr << "Invalid arguments!\n"; 
             }
         }
@@ -643,34 +642,74 @@ int main () {
                 else std::cerr << "Invalid arguments!\n"; 
             }
         }
-        //Раздел Администратор
+        //Database management
         else if (SH::toLowerCase(separatedCommand[0]) == "add") {
-            if (commandArguments > 2) std::cerr << "Too much arguments for this command!\n";
-            else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
-            else {
-                if (SH::toLowerCase(separatedCommand[1]) == "specialty") SpecialtyList::addSpecialty();
-                else if (SH::toLowerCase(separatedCommand[1]) == "discipline") SpecialtyList::addDiscipline();
-                else std::cerr << "Invalid argument!\n";
+            if (commandArguments == 1) {
+                std::cerr << "Too few arguments for this command!\n";
+                continue;
             }
+            if (SH::toLowerCase(separatedCommand[1]) == "specialty") {
+                if (commandArguments > 4) std::cerr << "Too much arguments for this command!\n";
+                else if (commandArguments < 4) std::cerr << "Too few arguments for this command!\n";
+                else {
+                    if (SH::isNumber(separatedCommand[3])) SpecialtyList::addSpecialty(SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'), std::atof(separatedCommand[3].c_str()));
+                    else std::cerr << "Invalid arguments!\n";
+                }
+            }
+            else if (SH::toLowerCase(separatedCommand[1]) == "discipline") {
+                if (commandArguments < 6) {
+                    std::cerr << "Too few arguments for this command!\n";
+                    continue;
+                }
+                if (EnumConvertions::stringToType(separatedCommand[4]) == Type::OPTIONAL) {
+                    if (commandArguments > 7) std::cerr << "Too much arguments for this command!\n";
+                    else if (commandArguments < 7) std::cerr << "Too few arguments for this command!\n";
+                    else {
+                        if (SH::isNumber(separatedCommand[6])) SpecialtyList::addDiscipline(SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'), SH::strip(SH::stripBegin(separatedCommand[3],'"'),'"'), SH::strip(SH::stripBegin(separatedCommand[4],'"'),'"'), SH::strip(SH::stripBegin(separatedCommand[5],'"'),'"'), std::atof(separatedCommand[6].c_str()));
+                        else std::cerr << "Invalid arguments!\n";
+                    }
+                }
+                else if (EnumConvertions::stringToType(separatedCommand[4]) == Type::COMPULSORY) {
+                    if (commandArguments > 6) std::cerr << "Too much arguments for this command!\n";
+                    else if (commandArguments < 6) std::cerr << "Too few arguments for this command!\n";
+                    else SpecialtyList::addDiscipline(SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'), SH::strip(SH::stripBegin(separatedCommand[3],'"'),'"'), SH::strip(SH::stripBegin(separatedCommand[4],'"'),'"'), SH::strip(SH::stripBegin(separatedCommand[5],'"'),'"'), 0);
+                }
+                else std::cerr << "Invalid type!\n";
+            }
+            else std::cerr << "Invalid option!\n";
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "remove") {
-            if (commandArguments > 2) std::cerr << "Too much arguments for this command!\n";
-            else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
-            else {
-                if (SH::toLowerCase(separatedCommand[1]) == "specialty") SpecialtyList::removeSpecialty();
-                else if (SH::toLowerCase(separatedCommand[1]) == "discipline") SpecialtyList::removeDiscipline();
-                else std::cerr << "Invalid argument!\n";
+            if (SH::toLowerCase(separatedCommand[1]) == "specialty") {
+                if (commandArguments > 3) std::cerr << "Too much arguments for this command!\n";
+                else if (commandArguments < 3) std::cerr << "Too few arguments for this command!\n";
+                else SpecialtyList::removeSpecialty(SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'));
             }
+            else if (SH::toLowerCase(separatedCommand[1]) == "discipline") {
+                if (commandArguments > 4) std::cerr << "Too much arguments for this command!\n";
+                else if (commandArguments < 4) std::cerr << "Too few arguments for this command!\n";
+                else {
+                    SpecialtyList::removeDiscipline(SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'), SH::strip(SH::stripBegin(separatedCommand[3],'"'),'"'));
+                }
+            }
+            else std::cerr << "Invalid option!\n";
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "list") {
-            if (commandArguments > 2) std::cerr << "Too much arguments for this command!\n";
-            else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
-            else {
-                if (SH::toLowerCase(separatedCommand[1]) == "specialties") SpecialtyList::listSpecialties();
-                else if (SH::toLowerCase(separatedCommand[1]) == "disciplines") SpecialtyList::listDisciplines();
-                else if (SH::toLowerCase(separatedCommand[1]) == "all") SpecialtyList::listAll();
-                else std::cerr << "Invalid argument!\n";
+            if (SH::toLowerCase(separatedCommand[1]) == "specialties") {
+                if (commandArguments > 2) std::cerr << "Too much arguments for this command!\n";
+                else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
+                else SpecialtyList::listSpecialties();
             }
+            else if (SH::toLowerCase(separatedCommand[1]) == "disciplines") {
+                if (commandArguments > 3) std::cerr << "Too much arguments for this command!\n";
+                else if (commandArguments < 3) std::cerr << "Too few arguments for this command!\n";
+                else SpecialtyList::listDisciplines(SH::strip(SH::stripBegin(separatedCommand[2],'"'),'"'));
+            }
+            else if (SH::toLowerCase(separatedCommand[1]) == "all") {
+                if (commandArguments > 2) std::cerr << "Too much arguments for this command!\n";
+                else if (commandArguments < 2) std::cerr << "Too few arguments for this command!\n";
+                else SpecialtyList::listAll();
+            }
+            else std::cerr << "Invalid option!\n";
         }
         else if (SH::toLowerCase(separatedCommand[0]) == "savespecialties") {
             SpecialtyList::writeSpecialties();
