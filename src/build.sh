@@ -1,1 +1,1 @@
-g++ main.cpp Helpers/StringHelper.cpp Discipline.cpp Student.cpp EnumConvertions.cpp Specialty.cpp SpecialtyList.cpp -std=c++11 -static-libgcc -static-libstdc++ -o main
+g++ main.cpp StringHelper.cpp Discipline.cpp Student.cpp EnumConvertions.cpp Specialty.cpp SpecialtyList.cpp StudentsList.cpp CommandLine.cpp -std=c++11 -static-libgcc -static-libstdc++ -o main

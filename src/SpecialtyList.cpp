@@ -2,7 +2,7 @@
 #include "Specialty.hpp"
 #include "Student.hpp"
 #include "Discipline.hpp"
-#include "Helpers/StringHelper.hpp"
+#include "StringHelper.hpp"
 #include "EnumerationClasses.hpp"
 #include "EnumConvertions.hpp"
 
@@ -13,7 +13,6 @@
 #include <string>
 #include <algorithm>
 
-#define SH StringHelper
 
 struct fileHeader {
     char fileLetters[3];
@@ -29,18 +28,18 @@ bool checkHeader (fileHeader restored) {
 std::vector<Specialty> SpecialtyList::specialties{Specialty()};
 
 int SpecialtyList::findSpecialty(std::string str) {
-    if(SH::isNumber(str) && std::atoi(str.c_str()) < SpecialtyList::specialties.size() && std::atoi(str.c_str()) >= 0) return std::atoi(str.c_str());
+    if(StringHelper::isNumber(str) && std::atoi(str.c_str()) < SpecialtyList::specialties.size() && std::atoi(str.c_str()) >= 0) return std::atoi(str.c_str());
     for (int i = 0; i < SpecialtyList::specialties.size(); i++) {
-        if (SH::toLowerCase(str) == SH::toLowerCase(specialties[i].getName())) return i;
+        if (StringHelper::toLowerCase(str) == StringHelper::toLowerCase(specialties[i].getName())) return i;
     }
     return 0;
 }
 
 int SpecialtyList::findDisciplineInSpecialty(std::string specialty, std::string discipline) {
     size_t specialtyIndex = findSpecialty(specialty);
-    if (SH::isNumber(discipline) && std::atoi(discipline.c_str()) > 0 && std::atoi(discipline.c_str()) <= specialties[specialtyIndex].getAvailableDisciplines().size()) return std::atoi(discipline.c_str())-1;
+    if (StringHelper::isNumber(discipline) && std::atoi(discipline.c_str()) > 0 && std::atoi(discipline.c_str()) <= specialties[specialtyIndex].getAvailableDisciplines().size()) return std::atoi(discipline.c_str())-1;
     for (size_t i = 0; i < specialties[specialtyIndex].getAvailableDisciplines().size(); i++) {
-        if (SH::toLowerCase(discipline) == SH::toLowerCase(specialties[specialtyIndex].getAvailableDisciplines()[i].getName())) return i;
+        if (StringHelper::toLowerCase(discipline) == StringHelper::toLowerCase(specialties[specialtyIndex].getAvailableDisciplines()[i].getName())) return i;
     }
     return -1;
 }
@@ -68,14 +67,14 @@ bool containsInVector(std::vector<int> vector, int element) {
 }
 
 std::vector<int> splitAvailableCourses (std::string availableCourses) {
-    availableCourses = SH::strip(SH::stripBegin(SH::clearAllConsecutiveSpaces(availableCourses)));
-    std::string* splittedCourses = SH::split(availableCourses);
-    int countCourses = SH::count(availableCourses, ' ') + 1;
+    availableCourses = StringHelper::strip(StringHelper::stripBegin(StringHelper::clearAllConsecutiveSpaces(availableCourses)));
+    std::string* splittedCourses = StringHelper::split(availableCourses);
+    int countCourses = StringHelper::count(availableCourses, ' ') + 1;
     
     std::vector<int> courses;
 
     for (int i = 0; i < countCourses; i++) {
-        if (SH::isNumber(splittedCourses[i]) && !containsInVector(courses, std::atoi(splittedCourses[i].c_str()))) courses.push_back(std::atoi(splittedCourses[i].c_str()));
+        if (StringHelper::isNumber(splittedCourses[i]) && !containsInVector(courses, std::atoi(splittedCourses[i].c_str()))) courses.push_back(std::atoi(splittedCourses[i].c_str()));
     }
 
     delete[] splittedCourses;
@@ -84,9 +83,9 @@ std::vector<int> splitAvailableCourses (std::string availableCourses) {
 }
 
 void SpecialtyList::addSpecialty (std::string specialtyName, double minCredits) {
-    specialtyName = SH::strip(SH::stripBegin(specialtyName));
+    specialtyName = StringHelper::strip(StringHelper::stripBegin(specialtyName));
     for(Specialty sp : specialties) {
-        if(SH::toLowerCase(specialtyName) == SH::toLowerCase(sp.getName())) {
+        if(StringHelper::toLowerCase(specialtyName) == StringHelper::toLowerCase(sp.getName())) {
             std::cerr << "A specialty with this name already exists!\n";
             return;
         }
@@ -96,7 +95,7 @@ void SpecialtyList::addSpecialty (std::string specialtyName, double minCredits) 
 }
 
 void SpecialtyList::removeSpecialty (std::string specialtyName) {
-    specialtyName = SH::strip(SH::stripBegin(specialtyName));
+    specialtyName = StringHelper::strip(StringHelper::stripBegin(specialtyName));
     int specialtyIndex = findSpecialty(specialtyName);
 
     if (!(specialtyIndex >= 1 && specialtyIndex < specialties.size())) {
@@ -110,16 +109,16 @@ void SpecialtyList::removeSpecialty (std::string specialtyName) {
 
 void SpecialtyList::addDiscipline (std::string specialtyName, std::string disciplineName, std::string typeName, std::string availableFor, double credits) {
     
-    specialtyName = SH::strip(SH::stripBegin(specialtyName));
+    specialtyName = StringHelper::strip(StringHelper::stripBegin(specialtyName));
     int specialtyIndex = findSpecialty(specialtyName);
     if (!(specialtyIndex >= 1 && specialtyIndex < specialties.size())) {
         std::cerr << "Invalid specialty!\n";
         return;
     }
 
-    disciplineName = SH::strip(SH::stripBegin(disciplineName));
+    disciplineName = StringHelper::strip(StringHelper::stripBegin(disciplineName));
 
-    typeName = SH::strip(SH::stripBegin(typeName));
+    typeName = StringHelper::strip(StringHelper::stripBegin(typeName));
     Type t = EnumConvertions::stringToType(typeName);
     if (t == Type::UNKNOWN) {
         std::cerr << "Invalid type!\n";
@@ -134,13 +133,13 @@ void SpecialtyList::addDiscipline (std::string specialtyName, std::string discip
 }
 
 void SpecialtyList::removeDiscipline (std::string specialtyName, std::string disciplineName) {
-    specialtyName = SH::strip(SH::stripBegin(specialtyName));
+    specialtyName = StringHelper::strip(StringHelper::stripBegin(specialtyName));
     int specialtyIndex = findSpecialty(specialtyName);
     if (!(specialtyIndex >= 1 && specialtyIndex < specialties.size())) {
         std::cerr << "Invalid specialty!\n";
         return;
     }
-    disciplineName = SH::strip(SH::stripBegin(disciplineName));
+    disciplineName = StringHelper::strip(StringHelper::stripBegin(disciplineName));
     int disciplineIndex = findDisciplineInSpecialty(specialtyName, disciplineName);
     if (!(disciplineIndex >= 0 && disciplineIndex < specialties[specialtyIndex].getAvailableDisciplines().size())) {
         std::cerr << "Invalid discipline!\n";
@@ -157,7 +156,7 @@ void SpecialtyList::listSpecialties() {
 }
 
 void SpecialtyList::listDisciplines(std::string specialtyName) {
-    specialtyName = SH::strip(SH::stripBegin(specialtyName));
+    specialtyName = StringHelper::strip(StringHelper::stripBegin(specialtyName));
     int specialtyIndex = findSpecialty(specialtyName);
     if (!(specialtyIndex >= 1 && specialtyIndex < specialties.size())) {
         std::cerr << "Invalid name or id!\n";

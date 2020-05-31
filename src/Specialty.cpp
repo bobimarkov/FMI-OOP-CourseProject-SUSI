@@ -1,5 +1,5 @@
 #include "Specialty.hpp"
-#include "Helpers/StringHelper.hpp"
+#include "StringHelper.hpp"
 #include "EnumConvertions.hpp"
 
 #include <iostream>
@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 
-#define SH StringHelper
+
 
 Specialty::Specialty(): name("UNKNOWN"), minCredits(0){
     availableDisciplines.clear();

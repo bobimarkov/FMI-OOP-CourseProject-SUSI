@@ -1,6 +1,6 @@
 #include "Student.hpp"
 #include "SpecialtyList.hpp"
-#include "Helpers/StringHelper.hpp"
+#include "StringHelper.hpp"
 #include "EnumerationClasses.hpp"
 #include "EnumConvertions.hpp"
 
@@ -8,7 +8,7 @@
 #include <vector>
 #include <fstream>
 
-#define SH StringHelper
+
 
 Student::Student(): name(""), faculty_number(0), course(0), group(0), status(Student_Status::UNKNOWN), average_grade(0) {
     disciplines.clear();
@@ -59,7 +59,7 @@ std::vector<StudentDiscipline>& Student::getDisciplines () {
 
 double Student::getGrade(std::string discipline) const {
     for (StudentDiscipline d : disciplines) {
-        if (SH::toLowerCase(d.discipline) == SH::toLowerCase(discipline)) return d.grade;
+        if (StringHelper::toLowerCase(d.discipline) == StringHelper::toLowerCase(discipline)) return d.grade;
     }
     return -1;
 }
@@ -70,7 +70,7 @@ double Student::getAverageGrade() const {
 
 int Student::getDisciplineEnrolledCourse(std::string discipline) const {
     for (StudentDiscipline d : disciplines) {
-        if (SH::toLowerCase(d.discipline) == SH::toLowerCase(discipline)) return d.enrolledCourse;
+        if (StringHelper::toLowerCase(d.discipline) == StringHelper::toLowerCase(discipline)) return d.enrolledCourse;
     }
     return -1;
 }
@@ -129,7 +129,7 @@ bool Student::isDisciplineEnrolled (std::string discipline) {
     int specialtyIndex = SpecialtyList::findSpecialty(specialty);
     int disciplineIndex = SpecialtyList::findDisciplineInSpecialty(specialty, discipline);
     for (StudentDiscipline d : disciplines) {
-        if (SH::toLowerCase(d.discipline) == SH::toLowerCase(discipline) && SpecialtyList::specialties[specialtyIndex].getAvailableDisciplines()[disciplineIndex].checkMatchCurrentCourse(d.enrolledCourse)) return true;
+        if (StringHelper::toLowerCase(d.discipline) == StringHelper::toLowerCase(discipline) && SpecialtyList::specialties[specialtyIndex].getAvailableDisciplines()[disciplineIndex].checkMatchCurrentCourse(d.enrolledCourse)) return true;
     }
     return false;
 }
